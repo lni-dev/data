@@ -16,6 +16,32 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
 
+
+/**
+ * This class is used to parse {@link Data} to a json string and vice versa
+ * <br><br>
+ *
+ *
+ * {@link Data} to json-string:<br>
+ * Can parse {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer},
+ * {@link Long}, {@link Float}, {@link Double}, {@link String} as well as {@link Object}[],
+ * any primitive type array and {@link Collection}
+ * <br><br>
+ *
+ *
+ * json-string to {@link Data}:<br>
+ * false/true to {@link Boolean} (ignores case)<br>
+ * null to {@code null} (ignores case)<br>
+ * Integer Numbers (1, 4, 5, ...) to {@link Long}
+ * (if {@link #setIdentifyNumberValues(boolean)} is set to false (standard) while converting to string(!))<br>
+ * Decimal Numbers (5.6, ...) to {@link Double}
+ * (if {@link #setIdentifyNumberValues(boolean)} is set to false (standard) while converting to string(!))<br>
+ * "strings" to {@link String}<br>
+ * Arrays ([...]) to {@link ArrayList<Object>}<br>
+ * any other values are not supported and will most like cause an {@link ParseException}
+ *
+ *
+ */
 public class JsonParser {
 
     private static final char BYTE_TOKEN = 'B';
@@ -186,7 +212,7 @@ public class JsonParser {
      * The value might be
      * {@link String}
      * {@link Data}
-     * {@link ArrayList}
+     * {@link ArrayList} (Arrays are always returned as ArrayLists)
      * {@link Number}
      *
      * @param c the last read char in the stream

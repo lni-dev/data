@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
+
+/**
+ * for more information on parsing, look here {@link JsonParser}
+ */
 public class Data implements Datable, AbstractData, Iterable<Entry> {
 
     public static JsonParser jsonParser = new JsonParser();
