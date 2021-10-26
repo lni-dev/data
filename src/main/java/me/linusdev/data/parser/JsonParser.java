@@ -20,15 +20,15 @@ import java.util.Locale;
 /**
  * This class is used to parse {@link Data} to a json string and vice versa
  * <br><br>
- *
- *
+ * <p>
+ * <p>
  * {@link Data} to json-string:<br>
  * Can parse {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer},
  * {@link Long}, {@link Float}, {@link Double}, {@link String} as well as {@link Object}[],
  * any primitive type array and {@link Collection}
  * <br><br>
- *
- *
+ * <p>
+ * <p>
  * json-string to {@link Data}:<br>
  * false/true to {@link Boolean} (ignores case)<br>
  * null to {@code null} (ignores case)<br>
@@ -39,8 +39,6 @@ import java.util.Locale;
  * "strings" to {@link String}<br>
  * Arrays ([...]) to {@link ArrayList<Object>}<br>
  * any other values are not supported and will most like cause an {@link ParseException}
- *
- *
  */
 public class JsonParser {
 
@@ -75,7 +73,7 @@ public class JsonParser {
         Data data;
         try {
             InputStream in = JsonParser.class.getClassLoader().getResourceAsStream(resource);
-            if(in == null) return null;
+            if (in == null) return null;
             reader = new BufferedReader(new InputStreamReader(in));
             tracker = new ParseTracker();
             data = readDataFromStream(nextFromStream(true));
@@ -100,11 +98,24 @@ public class JsonParser {
     }
 
     public Data readDataFromReader(Reader reader) throws ParseException, IOException {
+        return readDataFromReader(reader, false, null);
+    }
+
+    public Data readDataFromReader(Reader reader, boolean autoArray, @Nullable String arrayKey) throws ParseException, IOException {
         Data data;
         try {
             this.reader = reader;
             tracker = new ParseTracker();
-            data = readDataFromStream(nextFromStream(true));
+            char c = nextFromStream(true);
+
+            if (c == '[' && autoArray) {
+                data = new Data(1);
+                Entry entry = new Entry(arrayKey);
+                c = readArrayFromReader(reader, c, entry);
+                data.addEntry(entry); // we can use this here, since we created the Data right before
+            } else {
+                data = readDataFromStream(c);
+            }
         } finally {
             reader.close();
         }
@@ -112,9 +123,49 @@ public class JsonParser {
         return data;
     }
 
+    /**
+     *
+     * @param reader to read from
+     * @return the Array, represented by the read json. for more information see {@link JsonParser}
+     * @throws IOException
+     * @throws ParseException
+     */
+    public ArrayList readArrayFromReader(Reader reader) throws IOException, ParseException {
+        this.reader = reader;
+        tracker = new ParseTracker();
+
+        try {
+            SimpleEntry entry = new SimpleEntry();
+            char c = readArrayFromReader(reader, nextFromStream(true), entry);
+            return (ArrayList) entry.getValue();
+        } finally {
+            reader.close();
+        }
+
+    }
+
+    /**
+     *
+     * @param reader the reader to read from
+     * @param c last read char, should be '['
+     * @param entry the entry, the array should be saved to
+     * @return might not return the correct char, if end is reached, see ,{@link #readValueFromStream(char, SimpleEntry, boolean)}
+     * @throws IOException
+     * @throws ParseException
+     */
+    private char readArrayFromReader(Reader reader, char c, SimpleEntry entry) throws IOException, ParseException {
+        if (c != '[')
+            throw new UnexpectedCharacterException(c, tracker);
+
+        c = readValueFromStream(c, entry, true);
+
+        return c;
+    }
+
 
     /**
      * Does NOT close the writer after json has been written!
+     *
      * @param data
      * @param writer
      * @throws IOException
@@ -122,7 +173,7 @@ public class JsonParser {
     public void writeData(Data data, Writer writer) throws IOException {
         this.writer = writer;
         offset = new SpaceOffsetTracker(offsetString);
-        if(data == null) data = new Data(0);
+        if (data == null) data = new Data(0);
         writeJson(data);
     }
 
@@ -133,10 +184,10 @@ public class JsonParser {
     }
 
 
-
     /**
      * Default: "  "
      * used for the indentation of the json string
+     *
      * @param offsetString
      */
     public void setOffsetString(String offsetString) {
@@ -146,6 +197,7 @@ public class JsonParser {
     /**
      * Default: false
      * Whether "/" should be escaped or not
+     *
      * @param escapeForwardSlash
      */
     public void setEscapeForwardSlash(boolean escapeForwardSlash) {
@@ -161,29 +213,12 @@ public class JsonParser {
      * Long: L {@link JsonParser#LONG_TOKEN}
      * Float: F {@link JsonParser#FLOAT_TOKEN}
      * Double: D {@link JsonParser#DOUBLE_TOKEN}
+     *
      * @param identifyNumberValues
      */
     public void setIdentifyNumberValues(boolean identifyNumberValues) {
         this.identifyNumberValues = identifyNumberValues;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     private Data readDataFromStream(char c) throws IOException, ParseException {
@@ -208,20 +243,40 @@ public class JsonParser {
 
     /**
      * reads a value from the {@link #reader}
-     *
+     * <p>
      * The value might be
      * {@link String}
      * {@link Data}
      * {@link ArrayList} (Arrays are always returned as ArrayLists)
      * {@link Number}
      *
-     * @param c the last read char in the stream
+     * @param c     the last read char in the stream
      * @param entry the entry, which value is to be set
      * @return the last read char in the stream
      * @throws ParseException
      * @throws IOException
      */
     private char readValueFromStream(char c, SimpleEntry entry) throws ParseException, IOException {
+        return readValueFromStream(c, entry, false);
+    }
+
+    /**
+     * reads a value from the {@link #reader}
+     * <p>
+     * The value might be
+     * {@link String}
+     * {@link Data}
+     * {@link ArrayList} (Arrays are always returned as ArrayLists)
+     * {@link Number}
+     *
+     * @param c                             the last read char in the stream
+     * @param entry                         the entry, which value is to be set
+     * @param ignoreUnexpectedEndAfterArray used by {@link #readArrayFromReader(Reader)}
+     * @return the last read char in the stream
+     * @throws ParseException
+     * @throws IOException
+     */
+    private char readValueFromStream(char c, SimpleEntry entry, boolean ignoreUnexpectedEndAfterArray) throws ParseException, IOException {
 
         if (c == '"') {
             entry.setValue(intrudeStringValueFrom());
@@ -235,7 +290,7 @@ public class JsonParser {
             c = nextFromStream(true);
             if (c == ']') {
                 entry.setValue(new ArrayList<>());
-                return nextFromStream(true);
+                return nextFromStream(true, ignoreUnexpectedEndAfterArray);
             }
 
             ArrayList<Object> list = new ArrayList<>();
@@ -252,7 +307,7 @@ public class JsonParser {
                 c = nextFromStream(true);
             }
             entry.setValue(list);
-            return nextFromStream(true);
+            return nextFromStream(true, ignoreUnexpectedEndAfterArray);
 
         } else {
             StringBuilder value = new StringBuilder();
@@ -441,10 +496,26 @@ public class JsonParser {
      * @param allowNewLine
      * @return
      * @throws IOException
-     * @throws UnexpectedEndException
+     * @throws UnexpectedEndException       when stream ends
      * @throws UnexpectedCharacterException
      */
     private char nextFromStream(boolean allowNewLine) throws IOException, UnexpectedEndException, UnexpectedCharacterException {
+        return nextFromStream(allowNewLine, false);
+    }
+
+    /**
+     * reads until a character, which is not space, tab or a new line is found
+     * <p>
+     * if end of reader is reached and ignoreUnexpectedEnd is true, 'a' is returned
+     *
+     * @param allowNewLine
+     * @param ignoreUnexpectedEnd
+     * @return
+     * @throws IOException
+     * @throws UnexpectedEndException       when stream ends and ignoreUnexpectedEnd is false
+     * @throws UnexpectedCharacterException
+     */
+    private char nextFromStream(boolean allowNewLine, boolean ignoreUnexpectedEnd) throws IOException, UnexpectedEndException, UnexpectedCharacterException {
         int read = reader.read();
         char c;
         while (read != -1) {
@@ -466,28 +537,11 @@ public class JsonParser {
             read = reader.read();
         }
 
+        if (ignoreUnexpectedEnd)
+            return 'a';
+
         throw new UnexpectedEndException();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     /**
@@ -526,10 +580,10 @@ public class JsonParser {
             str.append("null");
 
         } else if (value instanceof Datable) {
-            generateJsonString( ((Datable) value).getData());
+            generateJsonString(((Datable) value).getData());
 
         } else if (value instanceof SimpleDatable) {
-            jsonValueJsonString( ((SimpleDatable) value).simplify());
+            jsonValueJsonString(((SimpleDatable) value).simplify());
 
         } else if (value instanceof String) {
             str.append('\"');
@@ -621,7 +675,7 @@ public class JsonParser {
                 jsonValueJsonString(o);
 
             }
-        }else {
+        } else {
             //If the Object is none of the above, a simple string is added instead
             str.append('"');
             ParseHelper.escapeWithForwardSlash(value.toString(), str);
@@ -647,35 +701,6 @@ public class JsonParser {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /**
      * Creates a beautiful json string of a {@link Data}
      *
@@ -683,7 +708,7 @@ public class JsonParser {
      * @return the json of a data as StringBuilder
      */
     private void writeJson(@Nullable Data data) throws IOException {
-        if(data == null) data = new Data(0);
+        if (data == null) data = new Data(0);
         writer.append('{');
         offset.add();
 
@@ -806,7 +831,7 @@ public class JsonParser {
 
             }
 
-        }else {
+        } else {
             //If the Object is none of the above, a simple string is added instead
             writer.append('"');
             ParseHelper.escapeWithForwardSlash(value.toString(), writer);
@@ -830,7 +855,6 @@ public class JsonParser {
         offset.remove();
         writer.append(offset.toString()).append(']');
     }
-
 
 
 }
