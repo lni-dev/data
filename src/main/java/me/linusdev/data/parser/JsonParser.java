@@ -19,26 +19,50 @@ import java.util.Locale;
 
 /**
  * This class is used to parse {@link Data} to a json string and vice versa
+ *
  * <br><br>
- * <p>
- * <p>
- * {@link Data} to json-string:<br>
- * Can parse {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer},
- * {@link Long}, {@link Float}, {@link Double}, {@link String} as well as {@link Object}[],
- * any primitive type array and {@link Collection}
- * <br><br>
- * <p>
- * <p>
- * json-string to {@link Data}:<br>
- * false/true to {@link Boolean} (ignores case)<br>
- * null to {@code null} (ignores case)<br>
- * Integer Numbers (1, 4, 5, ...) to {@link Long}
- * (if {@link #setIdentifyNumberValues(boolean)} is set to false (standard) while converting to string(!))<br>
- * Decimal Numbers (5.6, ...) to {@link Double}
- * (if {@link #setIdentifyNumberValues(boolean)} is set to false (standard) while converting to string(!))<br>
- * "strings" to {@link String}<br>
- * Arrays ([...]) to {@link ArrayList<Object>}<br>
- * any other values are not supported and will most like cause an {@link ParseException}
+ *
+ * <h3 style="margin-bottom:0; padding-bottom:0">{@link Data} to json-string can parse:</h3>
+ * <ul>
+ *     <li>
+ *         {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link String},
+ *     </li>
+ *     <li>
+ *         {@link Datable}
+ *     </li>
+ *     <li>
+ *          any primitive type array
+ *     </li>
+ *     <li>
+ *         {@link Object}[] and {@link Collection} of the before mentioned Classes
+ *     </li>
+ * </ul>
+ *
+ * <ul> <h3 style="margin-bottom:0; padding-bottom:0">json-string to {@link Data} can parse:</h3>
+ *     <li style="padding-top:0">
+ *         false/true to {@link Boolean} (ignores case)
+ *     </li>
+ *     <li>
+ *         null to {@code null} (ignores case)
+ *     </li>
+ *     <li>
+ *         Integer Numbers (1, 4, 5, ...) to {@link Long} <br>
+ *     (if {@link #setIdentifyNumberValues(boolean)} is set to false (standard) while converting to json-string(!))
+ *     </li>
+ *     <li>
+ *         Decimal Numbers (5.6, ...) to {@link Double} <br>
+ *     (if {@link #setIdentifyNumberValues(boolean)} is set to false (standard) while converting to json-string(!))<br>
+ *     </li>
+ *     <li>
+ *         "strings" to {@link String}
+ *     </li>
+ *     <li>
+ *         Arrays ([...]) to {@link ArrayList<Object>}&lt;Object&gt;
+ *     </li>
+ *     <li>
+ *         any other values are not supported and will most likely cause a {@link ParseException}
+ *     </li>
+ * </ul>
  */
 public class JsonParser {
 
@@ -263,11 +287,11 @@ public class JsonParser {
     /**
      * reads a value from the {@link #reader}
      * <p>
-     * The value might be
-     * {@link String}
-     * {@link Data}
-     * {@link ArrayList} (Arrays are always returned as ArrayLists)
-     * {@link Number}
+     * The value might be: <br>
+     * {@link String}<br>
+     * {@link Data}<br>
+     * {@link ArrayList<Object>}&lt;Object&gt; (Arrays are always returned as ArrayLists) <br>
+     * {@link Number}<br>
      *
      * @param c                             the last read char in the stream
      * @param entry                         the entry, which value is to be set
