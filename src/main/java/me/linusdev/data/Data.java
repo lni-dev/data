@@ -6,15 +6,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.function.Consumer;
 
 
 /**
  * for more information on parsing, look here {@link JsonParser}
  */
 public class Data implements Datable, AbstractData, Iterable<Entry> {
-
-    public static JsonParser jsonParser = new JsonParser();
 
     protected ArrayList<Entry> entries;
 
@@ -160,13 +157,17 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
         return entries;
     }
 
+    /**
+     * Generates a Json-string of this {@link Data}
+     * <br><br>
+     * This method creates a new {@link JsonParser} each call. <br>
+     * If you are using this a lot in the same Thread, you should probably make your own
+     * {@link JsonParser} and call {@link JsonParser#getJsonString(Data)} instead of this method
+     * @return json-string of this {@link Data}
+     */
     @Override
     public StringBuilder getJsonString(){
-        return jsonParser.getJsonString(this);
-    }
-
-    public static void setJsonParser(JsonParser jsonParser) {
-        Data.jsonParser = jsonParser;
+        return new JsonParser().getJsonString(this);
     }
 
     @Override
