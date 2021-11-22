@@ -1,5 +1,7 @@
 package me.linusdev.data;
 
+import me.linusdev.data.converter.Converter;
+import me.linusdev.data.converter.ExceptionConverter;
 import me.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,11 +23,21 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
 
     /**
      * Adds a new entry, does NOT check if an entry with given key already exists!
-     * @param key
-     * @param value
+     * @param key key
+     * @param value value
      */
     public void add(String key, Object value){
         entries.add(new Entry(key, value));
+    }
+
+    /**
+     * Will add this key and value, if value is not {@code null}
+     * @param key key
+     * @param value value
+     * @see #add(String, Object)
+     */
+    public void addIfNotNull(@NotNull String key, @Nullable Object value){
+        if(value != null) add(key, value);
     }
 
     /**
@@ -127,7 +139,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
     }
 
     /**
-     * This returns the value found by the key given. It might be null.
+     * This returns the value found by the key given. It might be null.<br>
      *
      * The value is an Object! But Arrays can be put into an Data instance as well as Collections,
      * note after parsing a Data the Class might have changed. Arrays are usually represented as ArrayLists when parsed!
@@ -139,6 +151,179 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
     @Nullable
     public Object get(@NotNull String key){
         return get(key, null);
+    }
+
+
+    /**
+     *
+     * The value returned by {@link #get(String)} with given key must be of type {@link C}<br>
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param defaultObject object to return if {@link #get(String)} with given key is {@code null}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(String)} with given is {@code null} or if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(String)} with given key is not of type {@link C}
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <C, R> R getAndConvert(@NotNull String key, @NotNull Converter<C, R> converter, @Nullable R defaultObject){
+        C convertible = (C) this.get(key);
+        if(convertible == null) return defaultObject;
+        return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * The value returned by {@link #get(String)} with given key must be of type {@link C}<br>
+     * If the value returned by {@link #get(String)} with given key is {@code null}, {@link Converter#convert(Object)} with {@code null} is called!
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @return result {@link R} or {@code null} if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(String)} with given key is not of type {@link C}
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <C, R> R getAndConvert(@NotNull String key, @NotNull Converter<C, R> converter){
+        C convertible = (C) this.get(key);
+        return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * The value returned by {@link #get(String)} with given key must be of type {@link C}<br>
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param defaultObject object to return if {@link #get(String)} with given key is {@code null}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(String)} with given is {@code null} or if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(String)} with given key is not of type {@link C}
+     * @throws Exception if {@link ExceptionConverter#convert(Object)} throws an Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <C, R> R getAndConvert(@NotNull String key, @NotNull ExceptionConverter<C, R> converter, @Nullable R defaultObject) throws Exception {
+        C convertible = (C) this.get(key);
+        if(convertible == null) return defaultObject;
+        return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * The value returned by {@link #get(String)} with given key must be of type {@link C}<br>
+     * If the value returned by {@link #get(String)} with given key is {@code null}, {@link Converter#convert(Object)} with {@code null} is called!
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @return result {@link R} or {@code null} if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(String)} with given key is not of type {@link C}
+     * @throws Exception if {@link ExceptionConverter#convert(Object)} throws an Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <C, R> R getAndConvert(@NotNull String key, @NotNull ExceptionConverter<C, R> converter) throws Exception {
+        C convertible = (C) this.get(key);
+        return converter.convert(convertible);
+    }
+
+    /**
+     * {@link #get(String)} with given key, must be an array.<br>
+     * All elements in the array returned by {@link #get(String)} with given key, must be of type {@link C} <br>
+     * If any of these conditions is not met, a {@link ClassCastException} might be thrown
+     *
+     * @param key the key for the array
+     * @param converter {@link Converter} to convert the Objects inside the array to {@link R}
+     * @param defaultList this will be returned if {@link #get(String)} with given key is {@code null}
+     * @param <C> convertible to convert
+     * @param <R> result type to convert to
+     * @return {@link ArrayList} of {@link R} or {@code null}
+     * @throws ClassCastException if types do not match (see method description)
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <C, R> ArrayList<R> getAndConvertArrayList(@NotNull String key, Converter<C, R> converter, @Nullable ArrayList<R> defaultList){
+        ArrayList<Object> list = (ArrayList<Object>) this.get(key);
+
+        if(list == null) return defaultList;
+
+        ArrayList<R> results = new ArrayList<>(list.size());
+        for(Object o : list)
+            results.add(converter.convert((C) o));
+
+        return results;
+    }
+
+    /**
+     * {@link #get(String)} with given key, must be an array.<br>
+     * All elements in the array returned by {@link #get(String)} with given key, must be of type {@link C} <br>
+     * If any of these conditions is not met, a {@link ClassCastException} might be thrown
+     *
+     * @param key the key for the array
+     * @param converter {@link Converter} to convert the Objects inside the array to {@link R}
+     * @param <C> convertible to convert
+     * @param <R> result type to convert to
+     * @return {@link ArrayList} of {@link R} or {@code null} if no entry with given key exist or is {@code null}
+     * @throws ClassCastException if types do not match (see method description)
+     * @see #getAndConvertArrayList(String, Converter, ArrayList)
+     */
+    @Nullable
+    public <C, R> ArrayList<R> getAndConvertArrayList(@NotNull String key, Converter<C, R> converter){
+        return getAndConvertArrayList(key, converter, null);
+    }
+
+    /**
+     * {@link #get(String)} with given key, must be an array.<br>
+     * All elements in the array returned by {@link #get(String)} with given key, must be of type {@link C} <br>
+     * If any of these conditions is not met, a {@link ClassCastException} might be thrown
+     *
+     * @param key the key for the array
+     * @param converter {@link Converter} to convert the Objects inside the array to {@link R}.
+     * @param defaultList this will be returned if {@link #get(String)} with given key is {@code null}
+     * @param <C> convertible to convert
+     * @param <R> result type to convert to
+     * @return {@link ArrayList} of {@link R} or {@code null}
+     * @throws ClassCastException if types do not match (see method description)
+     * @throws Exception caused by the converter
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <C, R> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R> converter, @Nullable ArrayList<R> defaultList) throws Exception {
+        ArrayList<Object> list = (ArrayList<Object>) this.get(key);
+
+        if(list == null) return defaultList;
+
+        ArrayList<R> results = new ArrayList<>(list.size());
+        for(Object o : list)
+            results.add(converter.convert((C) o));
+
+        return results;
+    }
+
+    /**
+     * {@link #get(String)} with given key, must be an array.<br>
+     * All elements in the array returned by {@link #get(String)} with given key, must be of type {@link C} <br>
+     * If any of these conditions is not met, a {@link ClassCastException} might be thrown
+     *
+     * @param key the key for the array
+     * @param converter {@link Converter} to convert the Objects inside the array to {@link R}.
+     * @param <C> convertible to convert
+     * @param <R> result type to convert to
+     * @return {@link ArrayList} of {@link R} or {@code null} if entry with given key does not exist or is {@code null}
+     * @throws ClassCastException if types do not match (see method description)
+     * @throws Exception caused by the converter
+     * @see #getAndConvertArrayList(String, ExceptionConverter, ArrayList)
+     */
+    @Nullable
+    public <C, R> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R> converter) throws Exception {
+        return getAndConvertArrayList(key, converter, null);
     }
 
     /**
