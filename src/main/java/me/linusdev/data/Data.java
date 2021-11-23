@@ -3,6 +3,7 @@ package me.linusdev.data;
 import me.linusdev.data.converter.Converter;
 import me.linusdev.data.converter.ExceptionConverter;
 import me.linusdev.data.parser.JsonParser;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -168,6 +169,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      */
     @SuppressWarnings("unchecked")
     @Nullable
+    @Contract("_, _, !null -> !null")
     public <C, R> R getAndConvert(@NotNull String key, @NotNull Converter<C, R> converter, @Nullable R defaultObject){
         C convertible = (C) this.get(key);
         if(convertible == null) return defaultObject;
@@ -187,7 +189,6 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @throws ClassCastException if the value returned by {@link #get(String)} with given key is not of type {@link C}
      */
     @SuppressWarnings("unchecked")
-    @Nullable
     public <C, R> R getAndConvert(@NotNull String key, @NotNull Converter<C, R> converter){
         C convertible = (C) this.get(key);
         return converter.convert(convertible);
