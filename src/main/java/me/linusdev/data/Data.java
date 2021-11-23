@@ -327,7 +327,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @see #getAndConvertArrayList(String, ExceptionConverter, ArrayList)
      */
     @Nullable
-    public <C, R, E extends Exception> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R, E> converter) throws Exception {
+    public <C, R, E extends Exception> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R, E> converter) throws E {
         return getAndConvertArrayList(key, converter, null);
     }
 
