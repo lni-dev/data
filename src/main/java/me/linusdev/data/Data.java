@@ -203,13 +203,14 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @param defaultObject object to return if {@link #get(String)} with given key is {@code null}
      * @param <C> the convertible type
      * @param <R> the result type
+     * @param <E> the Exception thrown by your {@link ExceptionConverter}
      * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(String)} with given is {@code null} or if your converter returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(String)} with given key is not of type {@link C}
-     * @throws Exception if {@link ExceptionConverter#convert(Object)} throws an Exception
+     * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public <C, R> R getAndConvert(@NotNull String key, @NotNull ExceptionConverter<C, R> converter, @Nullable R defaultObject) throws Exception {
+    public <C, R, E extends Exception> R getAndConvert(@NotNull String key, @NotNull ExceptionConverter<C, R, E> converter, @Nullable R defaultObject) throws E {
         C convertible = (C) this.get(key);
         if(convertible == null) return defaultObject;
         return converter.convert(convertible);
@@ -224,13 +225,14 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @param converter {@link Converter} to convert from {@link C} to {@link R}
      * @param <C> the convertible type
      * @param <R> the result type
+     * @param <E> the Exception thrown by your {@link ExceptionConverter}
      * @return result {@link R} or {@code null} if your converter returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(String)} with given key is not of type {@link C}
-     * @throws Exception if {@link ExceptionConverter#convert(Object)} throws an Exception
+     * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public <C, R> R getAndConvert(@NotNull String key, @NotNull ExceptionConverter<C, R> converter) throws Exception {
+    public <C, R, E extends Exception> R getAndConvert(@NotNull String key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
         C convertible = (C) this.get(key);
         return converter.convert(convertible);
     }
@@ -290,13 +292,14 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @param defaultList this will be returned if {@link #get(String)} with given key is {@code null}
      * @param <C> convertible to convert
      * @param <R> result type to convert to
+     * @param <E> the Exception thrown by your {@link ExceptionConverter}
      * @return {@link ArrayList} of {@link R} or {@code null}
      * @throws ClassCastException if types do not match (see method description)
-     * @throws Exception caused by the converter
+     * @throws E caused by the converter
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public <C, R> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R> converter, @Nullable ArrayList<R> defaultList) throws Exception {
+    public <C, R, E extends Exception> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R, E> converter, @Nullable ArrayList<R> defaultList) throws E {
         ArrayList<Object> list = (ArrayList<Object>) this.get(key);
 
         if(list == null) return defaultList;
@@ -317,13 +320,14 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @param converter {@link Converter} to convert the Objects inside the array to {@link R}.
      * @param <C> convertible to convert
      * @param <R> result type to convert to
+     * @param <E> the Exception thrown by your {@link ExceptionConverter}
      * @return {@link ArrayList} of {@link R} or {@code null} if entry with given key does not exist or is {@code null}
      * @throws ClassCastException if types do not match (see method description)
      * @throws Exception caused by the converter
      * @see #getAndConvertArrayList(String, ExceptionConverter, ArrayList)
      */
     @Nullable
-    public <C, R> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R> converter) throws Exception {
+    public <C, R, E extends Exception> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R, E> converter) throws Exception {
         return getAndConvertArrayList(key, converter, null);
     }
 
