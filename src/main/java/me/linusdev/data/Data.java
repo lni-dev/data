@@ -343,6 +343,14 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
         return null;
     }
 
+    /**
+     *
+     * @return {@code true} if this data does not contain any entries, false otherwise
+     */
+    public boolean isEmpty(){
+        return entries.isEmpty();
+    }
+
     public ArrayList<Entry> getEntries() {
         return entries;
     }
