@@ -249,15 +249,19 @@ public class JsonParser {
         Data data = new Data(1);
 
         if ((c) != '{') throw new UnexpectedCharacterException(c, tracker);
+        if((c = nextFromStream(true)) == '}') return data; // Empty Data
 
         while (true) {
-            if ((c = nextFromStream(true)) != '"') throw new UnexpectedCharacterException(c, tracker);
+            if ((c) != '"') throw new UnexpectedCharacterException(c, tracker);
 
             Entry e = new Entry(readKeyFromStream());
             if ((c = nextFromStream(false)) != ':') throw new UnexpectedCharacterException(c, tracker);
             c = readValueFromStream(nextFromStream(true), e);
             data.addEntry(e);
-            if (c == ',') continue;
+            if (c == ','){
+                c = nextFromStream(true);
+                continue;
+            }
             else if (c == '}') break;
             else throw new UnexpectedCharacterException(c, tracker);
         }
