@@ -121,10 +121,30 @@ public class JsonParser {
         return data;
     }
 
+    /**
+     * <p>
+     *     This will close the reader once finished reading or if an exception has been thrown
+     * </p>
+     * <p>
+     *     This cannot read pure json arrays (if the json starts with '[' instead of '{')
+     * </p>
+     * @param reader {@link Reader} to read from
+     * @return {@link Data}
+     * @see #readDataFromReader(Reader, boolean, String) 
+     */
     public Data readDataFromReader(Reader reader) throws ParseException, IOException {
         return readDataFromReader(reader, false, null);
     }
 
+    /**
+     * <p>
+     *     This will close the reader once finished reading or if an exception has been thrown
+     * </p>
+     * @param reader {@link Reader} to read from
+     * @param autoArray if the json starts with an array ("[...]"), it will parse this into a {@link Data}
+     * @param arrayKey the key, which the array should have in the created {@link Data}
+     * @return {@link Data}
+     */
     public Data readDataFromReader(Reader reader, boolean autoArray, @Nullable String arrayKey) throws ParseException, IOException {
         Data data;
         try {
