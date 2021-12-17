@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 
 /**
@@ -157,7 +158,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
 
     /**
      *
-     * The value returned by {@link #get(String)} with given key must be of type {@link C}<br>
+     * The value returned by {@link #get(String)} with given key must be of type {@link C} or {@code null}.<br>
      *
      * @param key the key for the entry of type {@link C}
      * @param converter {@link Converter} to convert from {@link C} to {@link R}
@@ -178,7 +179,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
 
     /**
      *
-     * The value returned by {@link #get(String)} with given key must be of type {@link C}<br>
+     * The value returned by {@link #get(String)} with given key must be of type {@link C} or {@code null}.<br>
      * If the value returned by {@link #get(String)} with given key is {@code null}, {@link Converter#convert(Object)} with {@code null} is called!
      *
      * @param key the key for the entry of type {@link C}
@@ -196,7 +197,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
 
     /**
      *
-     * The value returned by {@link #get(String)} with given key must be of type {@link C}<br>
+     * The value returned by {@link #get(String)} with given key must be of type {@link C} or {@code null}.<br>
      *
      * @param key the key for the entry of type {@link C}
      * @param converter {@link Converter} to convert from {@link C} to {@link R}
@@ -218,7 +219,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
 
     /**
      *
-     * The value returned by {@link #get(String)} with given key must be of type {@link C}<br>
+     * The value returned by {@link #get(String)} with given key must be of type {@link C} or {@code null}.<br>
      * If the value returned by {@link #get(String)} with given key is {@code null}, {@link Converter#convert(Object)} with {@code null} is called!
      *
      * @param key the key for the entry of type {@link C}
@@ -238,7 +239,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
     }
 
     /**
-     * {@link #get(String)} with given key, must be an array.<br>
+     * {@link #get(String)} with given key, must be an array or {@code null}.<br>
      * All elements in the array returned by {@link #get(String)} with given key, must be of type {@link C} <br>
      * If any of these conditions is not met, a {@link ClassCastException} might be thrown
      *
@@ -265,7 +266,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
     }
 
     /**
-     * {@link #get(String)} with given key, must be an array.<br>
+     * {@link #get(String)} with given key, must be an array or {@code null}.<br>
      * All elements in the array returned by {@link #get(String)} with given key, must be of type {@link C} <br>
      * If any of these conditions is not met, a {@link ClassCastException} might be thrown
      *
@@ -283,7 +284,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
     }
 
     /**
-     * {@link #get(String)} with given key, must be an array.<br>
+     * {@link #get(String)} with given key, must be an array or {@code null}.<br>
      * All elements in the array returned by {@link #get(String)} with given key, must be of type {@link C} <br>
      * If any of these conditions is not met, a {@link ClassCastException} might be thrown
      *
@@ -312,7 +313,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
     }
 
     /**
-     * {@link #get(String)} with given key, must be an array.<br>
+     * {@link #get(String)} with given key, must be an array or {@code null}.<br>
      * All elements in the array returned by {@link #get(String)} with given key, must be of type {@link C} <br>
      * If any of these conditions is not met, a {@link ClassCastException} might be thrown
      *
@@ -329,6 +330,31 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
     @Nullable
     public <C, R, E extends Exception> ArrayList<R> getAndConvertArrayList(@NotNull String key, ExceptionConverter<C, R, E> converter) throws E {
         return getAndConvertArrayList(key, converter, null);
+    }
+
+    /**
+     * <p>
+     *     If an entry with given key exists, it will be processed by given consumer and {@code true} will be returned.<br>
+     *     If an entry with given key does not exists, {@code false} will be returned.<br>
+     *     <br>
+     *     The entry will <b>NOT</b> be removed from this {@link Data}
+     *
+     * </p>
+     * @param key the key for the entry
+     * @param consumer consumer to process the entry, if it exists
+     * @param <C> type to cast to
+     * @return {@code true} if an entry with given key existed, {@code false} otherwise
+     */
+    @SuppressWarnings("unchecked")
+    public <C> boolean processIfContained(@NotNull String key, @NotNull Consumer<C> consumer){
+        for(Entry entry : entries){
+            if(entry.getKey().equals(key)){
+                consumer.accept((C) entry.getValue());
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
