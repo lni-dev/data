@@ -1,10 +1,12 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'java-library'
 }
 
-group 'me.linusdev'
-version '1.0'
+group = 'io.github.lni-dev'
+archivesBaseName = "data"
+version =  '1.0'
 
 targetCompatibility = JavaVersion.VERSION_11
 sourceCompatibility = JavaVersion.VERSION_11
@@ -31,9 +33,38 @@ task sourceJar(type: Jar) {
 
 publishing {
     publications {
-        maven(MavenPublication) {
-            from components.java
-            artifact sourceJar
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'data'
+                description = 'A Java Library to store data and parse it to JSON'
+                url = 'https://lni-dev.github.io/'
+                groupId = 'io.github.lni-dev'
+                version = project.version
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'linusdev'
+                        name = 'LinusDev'
+                        email = 'einsuperlinus@gmail.com'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/lni-dev/data.git'
+                    developerConnection ='scm:git:ssh://github.com:lni-dev/data.git'
+                    url = 'http://github.com/lni-dev/data/tree/master'
+                }
+                from components.java
+                artifact sourceJar
+            }
+
+
         }
     }
 }
