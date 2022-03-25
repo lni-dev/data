@@ -8,7 +8,7 @@ import java.io.Writer;
 public class ParseHelper {
 
     /**
-     * Escapes ", \, \n, \f, \r, \t, \b and Characters with matching unicode: ch <= '\u001f' || (ch >= '\u007f' && ch <= '\u009F') || (ch >= '\u2000' && ch <= '\u20FF')
+     * Escapes ", \, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
      * @param s the string to escape
      * @param str the stringBuilder, the escaped string should be addded to
      */
@@ -54,7 +54,7 @@ public class ParseHelper {
     }
 
     /**
-     * Escapes ", \, /, \n, \f, \r, \t, \b and Characters with matching unicode: ch <= '\u001f' || (ch >= '\u007f' && ch <= '\u009F') || (ch >= '\u2000' && ch <= '\u20FF')
+     * Escapes ", \, /, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
      * @param s the string to escape
      * @param str the stringBuilder, the escaped string should be addded to
      */
@@ -103,7 +103,7 @@ public class ParseHelper {
     }
 
     /**
-     * Escapes ", \, \n, \f, \r, \t, \b and Characters with matching unicode: ch <= '\u001f' || (ch >= '\u007f' && ch <= '\u009F') || (ch >= '\u2000' && ch <= '\u20FF')
+     * Escapes ", \, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
      * @param s the string to escape
      * @param str the stringBuilder, the escaped string should be addded to
      */
@@ -149,7 +149,7 @@ public class ParseHelper {
     }
 
     /**
-     * Escapes ", \, /, \n, \f, \r, \t, \b and Characters with matching unicode: ch <= '\u001f' || (ch >= '\u007f' && ch <= '\u009F') || (ch >= '\u2000' && ch <= '\u20FF')
+     * Escapes ", \, /, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
      * @param s the string to escape
      * @param str the stringBuilder, the escaped string should be addded to
      */

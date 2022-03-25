@@ -11,7 +11,7 @@ public interface ExceptionConverter<C, R, E extends Exception> {
      * converts from {@link C} to {@link R}
      * @param convertible convertible to convert
      * @return converted result
-     * @throws Exception convert exception
+     * @throws E convert exception
      */
     R convert(C convertible) throws E;
 }

@@ -324,7 +324,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @param <E> the Exception thrown by your {@link ExceptionConverter}
      * @return {@link ArrayList} of {@link R} or {@code null} if entry with given key does not exist or is {@code null}
      * @throws ClassCastException if types do not match (see method description)
-     * @throws Exception caused by the converter
+     * @throws E caused by the converter
      * @see #getAndConvertArrayList(String, ExceptionConverter, ArrayList)
      */
     @Nullable

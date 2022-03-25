@@ -5,3 +5,5 @@
 settings.gradle
 /gradle.properties
 /signing key.txt
+/secretkeyring.key
+/secring.gpg

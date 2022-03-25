@@ -22,7 +22,7 @@ import java.util.Locale;
  *
  * <br><br>
  *
- * <h1 style="margin-bottom:0; padding-bottom:0; font-size:10px">{@link Data} to json-string can parse:</h1>
+ * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">{@link Data} to json-string can parse:</a>
  * <ul>
  *     <li>
  *         {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link String},
@@ -38,7 +38,7 @@ import java.util.Locale;
  *     </li>
  * </ul>
  * <br>
- * <h1 style="margin-bottom:0; padding-bottom:0; font-size:10px">json-string to {@link Data} can parse:</h1>
+ * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">json-string to {@link Data} can parse:</a>
  * <ul>
  *     <li style="padding-top:0">
  *         false/true to {@link Boolean} (ignores case)
