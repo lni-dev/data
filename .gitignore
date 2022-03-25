@@ -4,6 +4,4 @@
 /build/classes/java/main/
 settings.gradle
 /gradle.properties
-/signing key.txt
-/secretkeyring.key
 /secring.gpg
