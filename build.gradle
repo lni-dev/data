@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'java-library'
+    id 'signing'
 }
 
 group = 'io.github.lni-dev'
@@ -26,14 +27,47 @@ test {
 }
 
 
-task sourceJar(type: Jar) {
-    from sourceSets.main.allJava
-    archiveClassifier = "sources"
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier.set("javadoc")
 }
 
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier.set("sources")
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+artifacts {
+    archives sourceJar, javadocJar
+}
+
+
+
 publishing {
+
+    repositories {
+        maven {
+            def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+            def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+            credentials {
+                username = ''
+                password = ''
+            }
+
+        }
+    }
+
     publications {
         mavenJava(MavenPublication) {
+            artifactId = 'data'
+            from components.java
             pom {
                 name = 'data'
                 description = 'A Java Library to store data and parse it to JSON'
@@ -60,12 +94,13 @@ publishing {
                     developerConnection ='scm:git:ssh://github.com:lni-dev/data.git'
                     url = 'http://github.com/lni-dev/data/tree/master'
                 }
-                from components.java
-                artifact sourceJar
             }
-
-
         }
     }
+}
+
+signing {
+    sign configurations.archives
+    sign publishing.publications.mavenJava
 }
 
