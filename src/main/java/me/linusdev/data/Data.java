@@ -18,6 +18,8 @@ package me.linusdev.data;
 
 import me.linusdev.data.converter.Converter;
 import me.linusdev.data.converter.ExceptionConverter;
+import me.linusdev.data.entry.Entry;
+import me.linusdev.data.entry.EntryImpl;
 import me.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -31,9 +33,9 @@ import java.util.function.Consumer;
 /**
  * for more information on parsing, look here {@link JsonParser}
  */
-public class Data implements Datable, AbstractData, Iterable<Entry> {
+public class Data implements Datable, AbstractData<String, Object>, Iterable<EntryImpl> {
 
-    protected ArrayList<Entry> entries;
+    protected ArrayList<EntryImpl> entries;
 
     public Data(int initialCapacity){
         entries = new ArrayList<>(initialCapacity);
@@ -44,18 +46,8 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @param key key
      * @param value value
      */
-    public void add(String key, Object value){
-        entries.add(new Entry(key, value));
-    }
-
-    /**
-     * Will add this key and value, if value is not {@code null}
-     * @param key key
-     * @param value value
-     * @see #add(String, Object)
-     */
-    public void addIfNotNull(@NotNull String key, @Nullable Object value){
-        if(value != null) add(key, value);
+    public boolean add(@NotNull String key, Object value){
+        return entries.add(new EntryImpl(key, value));
     }
 
     /**
@@ -63,40 +55,16 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @param entry
      */
     @Deprecated
-    public void addEntry(Entry entry){
+    public void addEntry(EntryImpl entry){
         entries.add(entry);
     }
 
     /**
-     * adds a new entry if none was found with given key or replaces the old entries value
-     *
-     * @param key
-     * @param value
-     * @return the old value or null if there was no entry with given key
-     */
-    public Object replaceOrAdd(String key, Object value){
-        Entry entry = getEntry(key);
-        if(entry == null){
-            add(key, value);
-            return null;
-        }
-
-        Object old = entry.getValue();
-        entry.setValue(value);
-        return old;
-    }
-
-    /**
-     *
-     *
-     *
      * @param key
      * @return entry with matching key or null if none was found
      */
-    @Nullable
-    @Deprecated
-    public Entry getEntry(@NotNull String key){
-        for(Entry entry : entries){
+    public EntryImpl getEntry(@NotNull String key){
+        for(EntryImpl entry : entries){
             if(entry.getKey().equals(key)) return entry;
         }
 
@@ -112,7 +80,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      */
     public Object get(@NotNull String key, Object defaultObject){
 
-        for(Entry entry : entries){
+        for(EntryImpl entry : entries){
             if(entry.getKey().equals(key)) return entry.getValue();
         }
 
@@ -128,7 +96,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      */
     public Object get(@NotNull String key, Object defaultObject, boolean returnDefaultIfNull){
 
-        for(Entry entry : entries){
+        for(EntryImpl entry : entries){
             if(entry.getKey().equals(key)){
                 if(returnDefaultIfNull && entry.getValue() == null) return defaultObject;
                 else return entry.getValue();
@@ -363,7 +331,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      */
     @SuppressWarnings("unchecked")
     public <C> boolean processIfContained(@NotNull String key, @NotNull Consumer<C> consumer){
-        for(Entry entry : entries){
+        for(EntryImpl entry : entries){
             if(entry.getKey().equals(key)){
                 consumer.accept((C) entry.getValue());
                 return true;
@@ -378,7 +346,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
      * @param key
      * @return old entry or null if there was no entry with given key
      */
-    public Entry remove(String key){
+    public EntryImpl remove(String key){
         for(int i = 0; i < entries.size(); i++){
             if(entries.get(i).getKey().equals(key)) return entries.remove(i);
         }
@@ -393,7 +361,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
         return entries.isEmpty();
     }
 
-    public ArrayList<Entry> getEntries() {
+    public ArrayList<EntryImpl> getEntries() {
         return entries;
     }
 
@@ -417,7 +385,7 @@ public class Data implements Datable, AbstractData, Iterable<Entry> {
 
     @NotNull
     @Override
-    public Iterator<Entry> iterator() {
+    public Iterator<EntryImpl> iterator() {
         return entries.iterator();
     }
 }

@@ -5,3 +5,4 @@
 settings.gradle
 /gradle.properties
 /secring.gpg
+/src/main/java/me/linusdev/data/Test.java

@@ -17,6 +17,7 @@
 package me.linusdev.data.parser;
 
 import me.linusdev.data.*;
+import me.linusdev.data.entry.EntryImpl;
 import me.linusdev.data.parser.exceptions.ParseException;
 import me.linusdev.data.parser.exceptions.ParseValueException;
 import me.linusdev.data.parser.exceptions.UnexpectedCharacterException;
@@ -171,7 +172,7 @@ public class JsonParser {
 
             if (c == '[' && autoArray) {
                 data = new Data(1);
-                Entry entry = new Entry(arrayKey);
+                EntryImpl entry = new EntryImpl(arrayKey);
                 c = readArrayFromReader(reader, c, entry);
                 data.addEntry(entry); // we can use this here, since we created the Data right before
             } else {
@@ -291,7 +292,7 @@ public class JsonParser {
         while (true) {
             if ((c) != '"') throw new UnexpectedCharacterException(c, tracker);
 
-            Entry e = new Entry(readKeyFromStream());
+            EntryImpl e = new EntryImpl(readKeyFromStream());
             if ((c = nextFromStream(false)) != ':') throw new UnexpectedCharacterException(c, tracker);
             c = readValueFromStream(nextFromStream(true), e);
             data.addEntry(e);
@@ -620,7 +621,7 @@ public class JsonParser {
         offset.add();
 
         boolean first = true;
-        for (Entry entry : data.getEntries()) {
+        for (EntryImpl entry : data.getEntries()) {
             if (!first) str.append(',');
             else first = false;
 
@@ -778,7 +779,7 @@ public class JsonParser {
         offset.add();
 
         boolean first = true;
-        for (Entry entry : data.getEntries()) {
+        for (EntryImpl entry : data.getEntries()) {
             if (!first) writer.append(',');
             else first = false;
 

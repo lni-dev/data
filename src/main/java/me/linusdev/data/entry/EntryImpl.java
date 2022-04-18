@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package me.linusdev.data;
+package me.linusdev.data.entry;
 
-public class Entry extends SimpleEntry{
+import me.linusdev.data.SimpleEntry;
+
+public class EntryImpl extends SimpleEntry implements Entry<String, Object>{
 
     private final String key;
     private Object value;
 
-    private Entry(){
+    private EntryImpl(){
         this.key = "";
     }
 
-    public Entry(String key, Object value){
+    public EntryImpl(String key, Object value){
         this.key = key;
         this.value = value;
     }
 
-    public Entry(String key){
+    public EntryImpl(String key){
         this.key = key;
         this.value = null;
     }
