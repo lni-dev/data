@@ -16,16 +16,23 @@
 
 package me.linusdev.data;
 
+import me.linusdev.data.converter.Converter;
+import me.linusdev.data.converter.ExceptionConverter;
 import me.linusdev.data.entry.Entry;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  *
  * @param <K> key
  * @param <V> value
  */
-public interface AbstractData<K, V> {
+public interface AbstractData<K, V> extends Iterable<Entry<K, V>>{
 
     /**
      * Adds a new {@link Entry}. <br>
@@ -99,7 +106,7 @@ public interface AbstractData<K, V> {
      * @param defaultObjectIfNull {@link V} default object to return, if {@link V value} for given key is {@code null}.
      * @return {@link V value} for given key or a default value as specified above.
      */
-    default @Nullable V get(K key, V defaultObject, V defaultObjectIfNull) {
+    default @Nullable V get(@NotNull K key, @Nullable V defaultObject, @Nullable V defaultObjectIfNull) {
         Entry<K, V> entry = getEntry(key);
         if(entry == null) return defaultObject;
         if(entry.getValue() == null) return defaultObjectIfNull;
@@ -107,14 +114,42 @@ public interface AbstractData<K, V> {
     }
 
     /**
+     * @see #get(Object, Object, Object)
+     */
+    @Contract("_, !null, !null -> !null")
+    default @Nullable V getOrDefault(@NotNull K key, @Nullable V defaultObject, @Nullable V defaultObjectIfNull) {
+        return get(key, defaultObject, defaultObjectIfNull);
+    }
+
+    /**
+     *
+     *
+     * @param key {@link  K key}
+     * @param defaultObject {@link V} default object to return, if no {@link Entry} for given key exists or value is {@code null}
+     * @return {@link V value} for given key or defaultObject if no {@link Entry} for given key exists or value is {@code null}.
+     * @see #get(Object, Object, Object)
+     */
+     @Contract("_, !null -> !null")
+    default @Nullable V getOrDefaultBoth(@NotNull K key, @Nullable V defaultObject) {
+        return get(key, defaultObject, defaultObject);
+    }
+
+    /**
      * @param key {@link K key}
      * @param defaultObject {@link V} default object to return, if no {@link Entry} for given key exists.
      * @return {@link V value} for given key or a defaultObject if no {@link Entry} with given key exists.
      */
-    default @Nullable V get(K key, V defaultObject) {
+    default @Nullable V get(@NotNull K key, @Nullable V defaultObject) {
         Entry<K, V> entry = getEntry(key);
         if(entry == null) return defaultObject;
         return entry.getValue();
+    }
+
+    /**
+     * @see #get(Object, Object)
+     */
+    default @Nullable V getOrDefault(@NotNull K key, @Nullable V defaultObject) {
+        return get(key, defaultObject);
     }
 
     /**
@@ -122,9 +157,225 @@ public interface AbstractData<K, V> {
      * @param key {@link K key}
      * @return {@link V value} or {@code null} if no {@link Entry} for given key exists.
      */
-    default @Nullable V get(K key) {
+    default @Nullable V get(@NotNull K key) {
         return get(key, null);
     }
+
+    /**
+     *
+     * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
+     * If the value returned by {@link #get(Object)} with given key is {@code null}, {@link Converter#convert(Object)} with {@code null} is called!
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @return result {@link R} or {@code null} if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
+     */
+    @SuppressWarnings("unchecked")
+    default  <C extends V, R> R getAndConvert(@NotNull K key, @NotNull Converter<C, R> converter){
+        C convertible = (C) get(key);
+        return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param defaultObject object to return if {@link #get(Object)} with given key is {@code null}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    @Contract("_, _, !null -> !null")
+    default <C extends V, R> R getAndConvert(@NotNull K key, @NotNull Converter<C, R> converter, @Nullable R defaultObject){
+        C convertible = (C) get(key);
+        if(convertible == null) return defaultObject;
+        return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
+     * If the value returned by {@link #get(Object)} with given key is {@code null}, {@link ExceptionConverter#convert(Object)} with {@code null} is called!
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @param <E> the Exception thrown by your {@link ExceptionConverter}
+     * @return result {@link R} or {@code null} if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
+     * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    default <C extends V, R, E extends Throwable> R getAndConvert(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+        C convertible = (C) get(key);
+        return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param defaultObject object to return if {@link #get(Object)} with given key is {@code null}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @param <E> the Exception thrown by your {@link ExceptionConverter}
+     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
+     * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    default  <C extends V, R, E extends Exception> R getAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter, @Nullable R defaultObject) throws E {
+        C convertible = (C) get(key);
+        if(convertible == null) return defaultObject;
+        return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
+     * @return {@link List} of {@link Object}
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
+     */
+    @SuppressWarnings("unchecked")
+    default @Nullable List<Object> getList(@NotNull K key) {
+        V value = get(key);
+        return (List<Object>) value;
+    }
+
+    /**
+     *
+     * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
+     * @return {@link List} of {@link Object} or defaultList if {@link #get(Object)} for given key returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
+     */
+    @SuppressWarnings("unchecked")
+    @Contract("_, !null -> !null")
+    default @Nullable List<Object> getList(@NotNull K key, @Nullable List<Object> defaultList) {
+        V value = get(key);
+        return value == null ? defaultList : (List<Object>) value;
+    }
+
+    /**
+     *
+     * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
+     * @param converter to convert from {@link C value contained in the list} to the {@link R result type}
+     * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
+     * @param <C> type which all elements of the list returned by {@link #getList(Object)} will be cast to
+     * @param <R> result type
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
+     * @throws ClassCastException if the elements of the list returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     */
+    @SuppressWarnings("unchecked")
+    default <C, R> @Nullable ArrayList<R> getListAndConvert(@NotNull K key, @NotNull Converter<C, R> converter) {
+        List<Object> list = getList(key);
+        if(list == null) return null;
+
+        ArrayList<R> returnList = new ArrayList<>(list.size());
+        for(Object o : list) {
+            returnList.add(converter.convert((C) o));
+        }
+
+        return returnList;
+    }
+
+    /**
+     *
+     * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
+     * @param converter to convert from {@link C value contained in the list} to the {@link R result type}
+     * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
+     * @param <C> type which all elements of the list returned by {@link #getList(Object)} will be cast to
+     * @param <R> result type
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
+     * @throws ClassCastException if the elements of the list returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     * @throws E if the converter throws this exception
+     */
+    @SuppressWarnings("unchecked")
+    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+        List<Object> list = getList(key);
+        if(list == null) return null;
+
+        ArrayList<R> returnList = new ArrayList<>(list.size());
+        for(Object o : list) {
+            returnList.add(converter.convert((C) o));
+        }
+
+        return returnList;
+    }
+
+    /**
+     * <p>
+     *     Each element from the list - returned by {@link #getList(Object)} with given key - will be set to {@code null},
+     *     after it has been converted and stored in the list that will be returned. After every element of the former list has been converted,
+     *     {@link List#clear()} will be called.
+     * </p>
+     *
+     * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
+     * @param converter to convert from {@link C value contained in the list} to the {@link R result type}
+     * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
+     * @param <C> type which all elements of the list returned by {@link #getList(Object)} will be cast to
+     * @param <R> result type
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
+     * @throws ClassCastException if the elements of the list returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     */
+    @SuppressWarnings("unchecked")
+    default <C, R> @Nullable ArrayList<R> getListAndConvertAndFreeMemory(@NotNull K key, @NotNull Converter<C, R> converter) {
+        List<Object> list = getList(key);
+        if(list == null) return null;
+
+        ArrayList<R> returnList = new ArrayList<>(list.size());
+        for(int i = 0; i < list.size(); i++) {
+            returnList.add(converter.convert((C) list.get(i)));
+            list.set(i, null); //Free memory
+        }
+
+        list.clear();
+        return returnList;
+    }
+
+    /**
+     * <p>
+     *     If an entry with given key exists, it will be processed by given consumer and {@code true} will be returned.<br>
+     *     If an entry with given key does not exists, {@code false} will be returned.<br>
+     *     <br>
+     *     The entry will <b>NOT</b> be removed from this {@link AbstractData}
+     *
+     * </p>
+     * @param key the key for the entry
+     * @param consumer consumer to process the entry, if it exists
+     * @param <C> type to cast to
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise
+     */
+    @SuppressWarnings("unchecked")
+    default  <C> boolean processIfContained(@NotNull String key, @NotNull Consumer<C> consumer){
+        for(Entry<K, V> entry : this){
+            if(entry.getKey().equals(key)){
+                consumer.accept((C) entry.getValue());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     *
+     * @return {@code true} if this data does not contain any entries, {@code false} otherwise
+     */
+    boolean isEmpty();
 
     @Nullable StringBuilder getJsonString();
 }
