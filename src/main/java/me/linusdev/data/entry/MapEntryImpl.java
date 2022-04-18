@@ -16,42 +16,33 @@
 
 package me.linusdev.data.entry;
 
-import me.linusdev.data.SimpleEntry;
+import me.linusdev.data.so.SOEntryImpl;
+import org.jetbrains.annotations.NotNull;
 
-public class EntryImpl extends SimpleEntry implements Entry<String, Object>{
+import java.util.Map;
 
-    private final String key;
-    private Object value;
+public class MapEntryImpl extends SOEntryImpl {
 
-    private EntryImpl(){
-        this.key = "";
-    }
+    private @NotNull Map<String, Object> associatedMap;
 
-    public EntryImpl(String key, Object value){
-        this.key = key;
-        this.value = value;
-    }
-
-    public EntryImpl(String key){
-        this.key = key;
-        this.value = null;
+    public MapEntryImpl(@NotNull Map<String, Object> associatedMap, String key) {
+        super(key, null);
+        this.associatedMap = associatedMap;
     }
 
     @Override
     public Object getValue() {
-        return value;
+        return associatedMap.get(getKey());
     }
 
     @Override
     public void setValue(Object value) {
-        this.value = value;
+        super.setValue(value);
+        associatedMap.put(getKey(), value);
     }
 
-    public String getKey() {
-        return key;
-    }
-
-    public boolean equalsKey(String key){
-        return this.key.equals(key);
+    @Override
+    public @NotNull String getKey() {
+        return super.getKey();
     }
 }

@@ -17,7 +17,9 @@
 package me.linusdev.data.parser;
 
 import me.linusdev.data.*;
-import me.linusdev.data.entry.EntryImpl;
+import me.linusdev.data.entry.Entry;
+import me.linusdev.data.so.SOEntryImpl;
+import me.linusdev.data.implemantations.DataListImpl;
 import me.linusdev.data.parser.exceptions.ParseException;
 import me.linusdev.data.parser.exceptions.ParseValueException;
 import me.linusdev.data.parser.exceptions.UnexpectedCharacterException;
@@ -29,17 +31,15 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Locale;
+import java.util.*;
 
 
 /**
- * This class is used to parse {@link Data} to a json string and vice versa
+ * This class is used to parse {@link AbstractData} to a json string and vice versa
  *
  * <br><br>
  *
- * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">{@link Data} to json-string can parse:</a>
+ * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">{@link AbstractData} to json-string can parse:</a>
  * <ul>
  *     <li>
  *         {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link String},
@@ -55,7 +55,7 @@ import java.util.Locale;
  *     </li>
  * </ul>
  * <br>
- * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">json-string to {@link Data} can parse:</a>
+ * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">json-string to {@link AbstractData} can parse:</a>
  * <ul>
  *     <li style="padding-top:0">
  *         false/true to {@link Boolean} (ignores case)
@@ -111,8 +111,8 @@ public class JsonParser {
 
     }
 
-    public Data readDataFroResourceFile(String resource) throws IOException, ParseException, NullPointerException {
-        Data data;
+    public DataListImpl readDataFroResourceFile(String resource) throws IOException, ParseException, NullPointerException {
+        DataListImpl data;
         try {
             InputStream in = JsonParser.class.getClassLoader().getResourceAsStream(resource);
             if (in == null) return null;
@@ -126,8 +126,8 @@ public class JsonParser {
         return data;
     }
 
-    public Data readDataFromFile(Path filePath) throws IOException, ParseException {
-        Data data;
+    public DataListImpl readDataFromFile(Path filePath) throws IOException, ParseException {
+        DataListImpl data;
         try {
             reader = Files.newBufferedReader(filePath);
             tracker = new ParseTracker();
@@ -147,10 +147,10 @@ public class JsonParser {
      *     This cannot read pure json arrays (if the json starts with '[' instead of '{')
      * </p>
      * @param reader {@link Reader} to read from
-     * @return {@link Data}
+     * @return {@link DataListImpl}
      * @see #readDataFromReader(Reader, boolean, String) 
      */
-    public Data readDataFromReader(Reader reader) throws ParseException, IOException {
+    public DataListImpl readDataFromReader(Reader reader) throws ParseException, IOException {
         return readDataFromReader(reader, false, null);
     }
 
@@ -159,22 +159,22 @@ public class JsonParser {
      *     This will close the reader once finished reading or if an exception has been thrown
      * </p>
      * @param reader {@link Reader} to read from
-     * @param autoArray if the json starts with an array ("[...]"), it will parse this into a {@link Data}
-     * @param arrayKey the key, which the array should have in the created {@link Data}
-     * @return {@link Data}
+     * @param autoArray if the json starts with an array ("[...]"), it will parse this into a {@link DataListImpl}
+     * @param arrayKey the key, which the array should have in the created {@link DataListImpl}
+     * @return {@link DataListImpl}
      */
-    public Data readDataFromReader(Reader reader, boolean autoArray, @Nullable String arrayKey) throws ParseException, IOException {
-        Data data;
+    public DataListImpl readDataFromReader(Reader reader, boolean autoArray, @Nullable String arrayKey) throws ParseException, IOException {
+        DataListImpl data;
         try {
             this.reader = reader;
             tracker = new ParseTracker();
             char c = nextFromStream(true);
 
             if (c == '[' && autoArray) {
-                data = new Data(1);
-                EntryImpl entry = new EntryImpl(arrayKey);
+                data = new DataListImpl(new LinkedList<>());
+                SOEntryImpl entry = new SOEntryImpl(arrayKey);
                 c = readArrayFromReader(reader, c, entry);
-                data.addEntry(entry); // we can use this here, since we created the Data right before
+                data.addEntry(entry); // we can use this here, since we created the DataListImpl right before
             } else {
                 data = readDataFromStream(c);
             }
@@ -211,11 +211,11 @@ public class JsonParser {
      * @param reader the reader to read from
      * @param c last read char, should be '['
      * @param entry the entry, the array should be saved to
-     * @return might not return the correct char, if end is reached, see ,{@link #readValueFromStream(char, SimpleEntry, boolean)}
+     * @return might not return the correct char, if end is reached, see ,{@link #readValueFromStream(char, Entry, boolean)}
      * @throws IOException
      * @throws ParseException
      */
-    private char readArrayFromReader(Reader reader, char c, SimpleEntry entry) throws IOException, ParseException {
+    private char readArrayFromReader(Reader reader, char c, Entry<?, Object> entry) throws IOException, ParseException {
         if (c != '[')
             throw new UnexpectedCharacterException(c, tracker);
 
@@ -232,14 +232,14 @@ public class JsonParser {
      * @param writer
      * @throws IOException
      */
-    public void writeData(Data data, Writer writer) throws IOException {
+    public void writeData(AbstractData<?, ?> data, Writer writer) throws IOException {
         this.writer = writer;
         offset = new SpaceOffsetTracker(offsetString);
-        if (data == null) data = new Data(0);
+        if (data == null) data = new DataListImpl(new ArrayList<>(0));
         writeJson(data);
     }
 
-    public StringBuilder getJsonString(Data data) {
+    public StringBuilder getJsonString(AbstractData<?, ?> data) {
         str = new StringBuilder();
         offset = new SpaceOffsetTracker(offsetString);
         return generateJsonString(data);
@@ -283,16 +283,16 @@ public class JsonParser {
     }
 
 
-    private Data readDataFromStream(char c) throws IOException, ParseException {
-        Data data = new Data(1);
+    private DataListImpl readDataFromStream(char c) throws IOException, ParseException {
+        DataListImpl data = new DataListImpl(new LinkedList<>());
 
         if ((c) != '{') throw new UnexpectedCharacterException(c, tracker);
-        if((c = nextFromStream(true)) == '}') return data; // Empty Data
+        if((c = nextFromStream(true)) == '}') return data; // Empty DataListImpl
 
         while (true) {
             if ((c) != '"') throw new UnexpectedCharacterException(c, tracker);
 
-            EntryImpl e = new EntryImpl(readKeyFromStream());
+            SOEntryImpl e = new SOEntryImpl(readKeyFromStream());
             if ((c = nextFromStream(false)) != ':') throw new UnexpectedCharacterException(c, tracker);
             c = readValueFromStream(nextFromStream(true), e);
             data.addEntry(e);
@@ -312,7 +312,7 @@ public class JsonParser {
      * <p>
      * The value might be
      * {@link String}
-     * {@link Data}
+     * {@link DataListImpl}
      * {@link ArrayList} (Arrays are always returned as ArrayLists)
      * {@link Number}
      *
@@ -322,7 +322,7 @@ public class JsonParser {
      * @throws ParseException
      * @throws IOException
      */
-    private char readValueFromStream(char c, SimpleEntry entry) throws ParseException, IOException {
+    private char readValueFromStream(char c, Entry<?, Object> entry) throws ParseException, IOException {
         return readValueFromStream(c, entry, false);
     }
 
@@ -331,7 +331,7 @@ public class JsonParser {
      * <p>
      * The value might be: <br>
      * {@link String}<br>
-     * {@link Data}<br>
+     * {@link DataListImpl}<br>
      * {@link ArrayList<Object>}&lt;Object&gt; (Arrays are always returned as ArrayLists) <br>
      * {@link Number}<br>
      *
@@ -342,7 +342,7 @@ public class JsonParser {
      * @throws ParseException
      * @throws IOException
      */
-    private char readValueFromStream(char c, SimpleEntry entry, boolean ignoreUnexpectedEndAfterArray) throws ParseException, IOException {
+    private char readValueFromStream(char c, Entry<?, Object> entry, boolean ignoreUnexpectedEndAfterArray) throws ParseException, IOException {
 
         if (c == '"') {
             entry.setValue(intrudeStringValueFrom());
@@ -611,17 +611,17 @@ public class JsonParser {
 
 
     /**
-     * Creates a beautiful json string of a {@link Data}
+     * Creates a beautiful json string of a {@link DataListImpl}
      *
      * @param data
      * @return the json of a data as StringBuilder
      */
-    private StringBuilder generateJsonString(@NotNull Data data) {
+    private StringBuilder generateJsonString(@NotNull AbstractData<?, ?> data) {
         str.append('{');
         offset.add();
 
         boolean first = true;
-        for (EntryImpl entry : data.getEntries()) {
+        for (Entry<?, ?> entry : data) {
             if (!first) str.append(',');
             else first = false;
 
@@ -768,23 +768,23 @@ public class JsonParser {
 
 
     /**
-     * Creates a beautiful json string of a {@link Data}
+     * Creates a beautiful json string of a {@link AbstractData}
      *
      * @param data
      * @return the json of a data as StringBuilder
      */
-    private void writeJson(@Nullable Data data) throws IOException {
-        if (data == null) data = new Data(0);
+    private void writeJson(@Nullable AbstractData<?, ?> data) throws IOException {
+        if (data == null) data = new DataListImpl(new ArrayList<>(0));
         writer.append('{');
         offset.add();
 
         boolean first = true;
-        for (EntryImpl entry : data.getEntries()) {
+        for (Entry<?, ?> entry : data) {
             if (!first) writer.append(',');
             else first = false;
 
             writer.append('\n').append(offset.toString());
-            writer.append('"').append(entry.getKey()).append("\": ");
+            writer.append('"').append(Objects.toString(entry.getKey())).append("\": ");
 
             writeJsonValue(entry.getValue());
 

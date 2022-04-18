@@ -19,6 +19,8 @@ package me.linusdev.data;
 import me.linusdev.data.converter.Converter;
 import me.linusdev.data.converter.ExceptionConverter;
 import me.linusdev.data.entry.Entry;
+import me.linusdev.data.implemantations.DataMapImpl;
+import me.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,13 +34,14 @@ import java.util.function.Consumer;
  * @param <K> key
  * @param <V> value
  */
-public interface AbstractData<K, V> extends Iterable<Entry<K, V>>{
+public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
 
     /**
      * Adds a new {@link Entry}. <br>
      * <p>
-     * This method might not check, if a {@link Entry} with given key already exits
-     * (depending on the implementation)
+     * This method might not check, if a {@link Entry} with given key already exits.
+     * Depending on the implementation, this might even override existing mappings
+     * (for Example {@link DataMapImpl DataMapImpl}).
      * </p>
      *
      * @param key key
@@ -50,8 +53,9 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>{
     /**
      * Adds a new {@link Entry} if given value is not {@code null}. <br>
      * <p>
-     * This method might not check, if a {@link Entry} with given key already exits
-     * (depending on the implementation)
+     * This method might not check, if a {@link Entry} with given key already exits.
+     * Depending on the implementation, this might even override existing mappings
+     * (for Example {@link DataMapImpl DataMapImpl}).
      * </p>
      *
      * @param key key
@@ -85,6 +89,26 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>{
         entry.setValue(value);
         return old;
     }
+
+    /**
+     * Adds a new {@link Entry}. <br>
+     * <p>
+     * This method might not check, if a {@link Entry} with given key already exits
+     * (depending on the implementation)
+     * </p>
+     *
+     * @param entry entry to add
+     */
+    void addEntry(@NotNull Entry<K, V> entry);
+
+    /**
+     * <p>
+     *     Removes {@link Entry} with given key. If no such entry exists nothing happens.
+     * </p>
+     * @param key key for the entry to remove
+     * @return the removed {@link Entry} or {@code null} if no entry was removed.
+     */
+    @Nullable Entry<K, V> remove(@NotNull K key);
 
     /**
      *
@@ -271,12 +295,12 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>{
     /**
      *
      * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
-     * @param converter to convert from {@link C value contained in the list} to the {@link R result type}
+     * @param converter to convert from {@link C value contained in the implemantations} to the {@link R result type}
      * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
-     * @param <C> type which all elements of the list returned by {@link #getList(Object)} will be cast to
+     * @param <C> type which all elements of the implemantations returned by {@link #getList(Object)} will be cast to
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
-     * @throws ClassCastException if the elements of the list returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     * @throws ClassCastException if the elements of the implemantations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      */
     @SuppressWarnings("unchecked")
     default <C, R> @Nullable ArrayList<R> getListAndConvert(@NotNull K key, @NotNull Converter<C, R> converter) {
@@ -294,12 +318,12 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>{
     /**
      *
      * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
-     * @param converter to convert from {@link C value contained in the list} to the {@link R result type}
+     * @param converter to convert from {@link C value contained in the implemantations} to the {@link R result type}
      * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
-     * @param <C> type which all elements of the list returned by {@link #getList(Object)} will be cast to
+     * @param <C> type which all elements of the implemantations returned by {@link #getList(Object)} will be cast to
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
-     * @throws ClassCastException if the elements of the list returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     * @throws ClassCastException if the elements of the implemantations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      * @throws E if the converter throws this exception
      */
     @SuppressWarnings("unchecked")
@@ -317,18 +341,18 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>{
 
     /**
      * <p>
-     *     Each element from the list - returned by {@link #getList(Object)} with given key - will be set to {@code null},
-     *     after it has been converted and stored in the list that will be returned. After every element of the former list has been converted,
+     *     Each element from the implemantations - returned by {@link #getList(Object)} with given key - will be set to {@code null},
+     *     after it has been converted and stored in the implemantations that will be returned. After every element of the former implemantations has been converted,
      *     {@link List#clear()} will be called.
      * </p>
      *
      * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
-     * @param converter to convert from {@link C value contained in the list} to the {@link R result type}
+     * @param converter to convert from {@link C value contained in the implemantations} to the {@link R result type}
      * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
-     * @param <C> type which all elements of the list returned by {@link #getList(Object)} will be cast to
+     * @param <C> type which all elements of the implemantations returned by {@link #getList(Object)} will be cast to
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
-     * @throws ClassCastException if the elements of the list returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     * @throws ClassCastException if the elements of the implemantations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      */
     @SuppressWarnings("unchecked")
     default <C, R> @Nullable ArrayList<R> getListAndConvertAndFreeMemory(@NotNull K key, @NotNull Converter<C, R> converter) {
@@ -377,5 +401,12 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>{
      */
     boolean isEmpty();
 
-    @Nullable StringBuilder getJsonString();
+    default @Nullable StringBuilder toJsonString() {
+        return new JsonParser().getJsonString(this);
+    }
+
+    @Override
+    default AbstractData<K, V> getData() {
+        return this;
+    }
 }
