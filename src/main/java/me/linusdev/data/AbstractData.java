@@ -401,6 +401,12 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      */
     boolean isEmpty();
 
+    /**
+     *
+     * @return current amount of {@link Entry entries} contained.
+     */
+    int size();
+
     default @Nullable StringBuilder toJsonString() {
         return new JsonParser().getJsonString(this);
     }

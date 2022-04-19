@@ -23,6 +23,13 @@ import java.io.Writer;
 
 public class ParseHelper {
 
+    public static final char BYTE_ID    =   'B';
+    public static final char SHORT_ID   =   'S';
+    public static final char INTEGER_ID =   'I';
+    public static final char LONG_ID    =   'L';
+    public static final char FLOAT_ID   =   'F';
+    public static final char DOUBLE_ID  =   'D';
+
     /**
      * Escapes ", \, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
      * @param s the string to escape

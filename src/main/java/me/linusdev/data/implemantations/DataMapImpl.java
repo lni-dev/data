@@ -65,6 +65,11 @@ public class DataMapImpl implements SOData {
         return entries.isEmpty();
     }
 
+    @Override
+    public int size() {
+        return entries.size();
+    }
+
     @NotNull
     @Override
     public Iterator<Entry<String, Object>> iterator() {

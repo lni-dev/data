@@ -76,6 +76,11 @@ public class DataListImpl implements SOData {
     }
 
     @Override
+    public int size() {
+        return entries.size();
+    }
+
+    @Override
     public Iterator<Entry<String, Object>> iterator() {
         return entries.iterator();
     }
