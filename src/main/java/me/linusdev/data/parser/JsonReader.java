@@ -111,7 +111,7 @@ public class JsonReader {
 
             str.append((char) i);
 
-            i = reader.read();
+            i = read(tracker);
         }
 
         throw new UnexpectedEndException(tracker);
