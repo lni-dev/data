@@ -30,7 +30,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- *
+ * A {@link AbstractData} can store key-value pairs.
+ * <br><br>
+ * These can be parsed to a json-string using {@link JsonParser}.
  * @param <K> key
  * @param <V> value
  */

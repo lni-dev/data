@@ -36,7 +36,7 @@ import java.util.*;
 
 /**
  *
- * Replaced by {@link JsonParser}<br<br>
+ * Replaced by {@link JsonParser}<br><br>
  *
  * This class is used to parse {@link AbstractData} to a json string and vice versa
  *

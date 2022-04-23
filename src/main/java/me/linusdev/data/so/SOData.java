@@ -19,6 +19,7 @@ package me.linusdev.data.so;
 import me.linusdev.data.AbstractData;
 import me.linusdev.data.implemantations.DataListImpl;
 import me.linusdev.data.implemantations.DataMapImpl;
+import me.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,13 +27,33 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+/**
+ * This represents a {@link AbstractData}, but the keys are {@link String strings} and the values are {@link Object objects}.
+ * <br><br>
+ * {@link SOData} can be parsed to a json and json can be parsed to {@link SOData} using {@link JsonParser}.
+ * See {@link JsonParser} for restrictions.
+ * <br><br>
+ * There are different {@link SOData} implementations:
+ * <ul>
+ *     <li>{@link DataListImpl}</li>
+ *     <li>{@link DataMapImpl}</li>
+ * </ul>
+ * <br>
+ * The static methods of this interface should be used to create new {@link SOData} instances:
+ * <ul>
+ *     <li>{@link #newOrderedDataWithKnownSize(int)}</li>
+ *     <li>{@link #newOrderedDataWithUnknownSize()}</li>
+ *     <li>{@link #newHashMapData(int)}</li>
+ * </ul>
+ *
+ */
 public interface SOData extends AbstractData<String, Object> {
 
     /**
      * <p>
      *     This will create a new {@link SOData} which will keep the order the elements are added.
      *     This {@link SOData} will be backed by a backed by a {@link ArrayList} with given initialCapacity.<br>
-     *     This is useful for {@link AbstractData data objects} with known sizes or for {@link AbstractData} with small
+     *     This is useful for {@link AbstractData data objects} with known sizes or for {@link AbstractData data objects} with small
      *     sizes.
      * </p>
      * <p>

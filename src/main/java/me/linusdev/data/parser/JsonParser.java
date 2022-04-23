@@ -33,6 +33,54 @@ import java.io.*;
 import java.util.*;
 import java.util.function.Supplier;
 
+
+/**
+ *
+ * This class is used to parse {@link AbstractData} to a json-string and json-string to {@link SOData}.
+ *
+ * <br><br>
+ *
+ * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">{@link AbstractData} to json-string can parse:</a>
+ * <ul>
+ *     <li>
+ *         {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link String},
+ *     </li>
+ *     <li>
+ *         {@link Datable}
+ *     </li>
+ *     <li>
+ *          any primitive type array
+ *     </li>
+ *     <li>
+ *         {@link Object}[] and {@link Collection} of the before mentioned Classes
+ *     </li>
+ * </ul>
+ * <br>
+ * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">json-string to {@link me.linusdev.data.so.SOData SOData} can parse:</a>
+ * <ul>
+ *     <li style="padding-top:0">
+ *         false/true to {@link Boolean} (ignores case)
+ *     </li>
+ *     <li>
+ *         null to {@code null} (ignores case)
+ *     </li>
+ *     <li>
+ *         Integer Numbers (1, 4, 5, ...) to {@link Long} <br>
+ *     </li>
+ *     <li>
+ *         Decimal Numbers (5.6, ...) to {@link Double} <br>
+ *     </li>
+ *     <li>
+ *         "strings" to {@link String}
+ *     </li>
+ *     <li>
+ *         Arrays ([...]) to {@link ArrayList<Object>}&lt;Object&gt;
+ *     </li>
+ *     <li>
+ *         any other values are not supported and will most likely cause a {@link ParseException}
+ *     </li>
+ * </ul>
+ */
 public class JsonParser {
 
     public static final int CURLY_BRACKET_OPEN_CHAR      = '{';
