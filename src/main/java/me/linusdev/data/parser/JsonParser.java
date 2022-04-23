@@ -161,7 +161,7 @@ public class JsonParser {
      * @throws IOException while parsing
      * @throws ParseException while parsing
      */
-    public SOData parseStream(@NotNull InputStream stream) throws IOException, ParseException {
+    public @NotNull SOData parseStream(@NotNull InputStream stream) throws IOException, ParseException {
         JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(stream)));
 
         try {
@@ -180,7 +180,7 @@ public class JsonParser {
      * @throws IOException while parsing
      * @throws ParseException while parsing
      */
-    public SOData parseReader(@NotNull Reader reader) throws IOException, ParseException {
+    public @NotNull SOData parseReader(@NotNull Reader reader) throws IOException, ParseException {
         JsonReader jsonReader = new JsonReader(new BufferedReader(reader));
 
         try {
@@ -197,7 +197,7 @@ public class JsonParser {
      * @throws IOException while parsing
      * @throws ParseException while parsing
      */
-    private SOData parse(@NotNull JsonReader reader) throws IOException, ParseException {
+    private @NotNull SOData parse(@NotNull JsonReader reader) throws IOException, ParseException {
         ParseTracker tracker = new ParseTracker();
         int i = reader.read(tracker);
         if(i == -1) return dataSupplier.get();
@@ -226,7 +226,7 @@ public class JsonParser {
      * @throws IOException while parsing
      * @throws ParseException while parsing
      */
-    private SOData parseJsonObject(@NotNull JsonReader reader, @NotNull ParseTracker tracker) throws IOException, ParseException {
+    private @NotNull SOData parseJsonObject(@NotNull JsonReader reader, @NotNull ParseTracker tracker) throws IOException, ParseException {
         int i = reader.read(tracker);
         SOData data = dataSupplier.get();
 
@@ -336,7 +336,7 @@ public class JsonParser {
      * @return {@link StringBuffer#toString()}
      * @throws IOException {@link IOException} while writing
      */
-    public String writeDataToString(@Nullable AbstractData<?, ?> data) throws IOException {
+    public @NotNull String writeDataToString(@Nullable AbstractData<?, ?> data) throws IOException {
         return writeDataToStringBuilder(data).toString();
     }
 
@@ -345,7 +345,7 @@ public class JsonParser {
      * @param data {@link AbstractData} to write to a {@link StringBuffer}
      * @return {@link StringBuffer}
      */
-    public StringBuilder writeDataToStringBuilder(@Nullable AbstractData<?, ?> data){
+    public @NotNull StringBuilder writeDataToStringBuilder(@Nullable AbstractData<?, ?> data){
         StringBuilder writer = new StringBuilder(data == null ? 10 : data.size() * 10);
         try {
             writeData(writer, data);

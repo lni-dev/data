@@ -231,27 +231,6 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     /**
      *
      * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
-     * If the value returned by {@link #get(Object)} with given key is {@code null}, {@link ExceptionConverter#convert(Object)} with {@code null} is called!
-     *
-     * @param key the key for the entry of type {@link C}
-     * @param converter {@link Converter} to convert from {@link C} to {@link R}
-     * @param <C> the convertible type
-     * @param <R> the result type
-     * @param <E> the Exception thrown by your {@link ExceptionConverter}
-     * @return result {@link R} or {@code null} if your converter returns {@code null}
-     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
-     * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
-     */
-    @SuppressWarnings("unchecked")
-    @Nullable
-    default <C extends V, R, E extends Throwable> R getAndConvert(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
-        C convertible = (C) get(key);
-        return converter.convert(convertible);
-    }
-
-    /**
-     *
-     * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
      *
      * @param key the key for the entry of type {@link C}
      * @param converter {@link Converter} to convert from {@link C} to {@link R}
@@ -299,12 +278,12 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     /**
      *
      * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
-     * @param converter to convert from {@link C value contained in the implemantations} to the {@link R result type}
+     * @param converter to convert from {@link C value contained in the implementations} to the {@link R result type}
      * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
-     * @param <C> type which all elements of the implemantations returned by {@link #getList(Object)} will be cast to
+     * @param <C> type which all elements of the implementations returned by {@link #getList(Object)} will be cast to
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
-     * @throws ClassCastException if the elements of the implemantations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      */
     @SuppressWarnings("unchecked")
     default <C, R> @Nullable ArrayList<R> getListAndConvert(@NotNull K key, @NotNull Converter<C, R> converter) {
@@ -322,12 +301,12 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     /**
      *
      * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
-     * @param converter to convert from {@link C value contained in the implemantations} to the {@link R result type}
+     * @param converter to convert from {@link C value contained in the implementations} to the {@link R result type}
      * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
-     * @param <C> type which all elements of the implemantations returned by {@link #getList(Object)} will be cast to
+     * @param <C> type which all elements of the implementations returned by {@link #getList(Object)} will be cast to
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
-     * @throws ClassCastException if the elements of the implemantations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      * @throws E if the converter throws this exception
      */
     @SuppressWarnings("unchecked")
@@ -345,21 +324,52 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
 
     /**
      * <p>
-     *     Each element from the implemantations - returned by {@link #getList(Object)} with given key - will be set to {@code null},
-     *     after it has been converted and stored in the implemantations that will be returned. After every element of the former implemantations has been converted,
+     *     Each element from the implementations - returned by {@link #getList(Object)} with given key - will be set to {@code null},
+     *     after it has been converted and stored in the implementations that will be returned. After every element of the former implemantations has been converted,
      *     {@link List#clear()} will be called.
      * </p>
      *
      * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
-     * @param converter to convert from {@link C value contained in the implemantations} to the {@link R result type}
+     * @param converter to convert from {@link C value contained in the implementations} to the {@link R result type}
      * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
-     * @param <C> type which all elements of the implemantations returned by {@link #getList(Object)} will be cast to
+     * @param <C> type which all elements of the implementations returned by {@link #getList(Object)} will be cast to
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
-     * @throws ClassCastException if the elements of the implemantations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      */
     @SuppressWarnings("unchecked")
     default <C, R> @Nullable ArrayList<R> getListAndConvertAndFreeMemory(@NotNull K key, @NotNull Converter<C, R> converter) {
+        List<Object> list = getList(key);
+        if(list == null) return null;
+
+        ArrayList<R> returnList = new ArrayList<>(list.size());
+        for(int i = 0; i < list.size(); i++) {
+            returnList.add(converter.convert((C) list.get(i)));
+            list.set(i, null); //Free memory
+        }
+
+        list.clear();
+        return returnList;
+    }
+
+    /**
+     * <p>
+     *     Each element from the implementations - returned by {@link #getList(Object)} with given key - will be set to {@code null},
+     *     after it has been converted and stored in the implementations that will be returned. After every element of the former implemantations has been converted,
+     *     {@link List#clear()} will be called.
+     * </p>
+     *
+     * @param key the key for the entry, whose value is of type {@link List} of {@link Object}
+     * @param converter to convert from {@link C value contained in the implementations} to the {@link R result type}
+     * @return {@link ArrayList} of {@link R} or {@code null} if {@link #getList(Object)} with given key returns {@code null}
+     * @param <C> type which all elements of the implementations returned by {@link #getList(Object)} will be cast to
+     * @param <R> result type
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
+     * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
+     * @throws E {@link ExceptionConverter#convert(Object)}
+     */
+    @SuppressWarnings("unchecked")
+    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithExceptionAndFreeMemory(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -415,7 +425,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * Writes this {@link AbstractData} to a {@link StringBuilder}.
      * @return {@link StringBuilder}
      */
-    default @Nullable StringBuilder toJsonString() {
+    default @NotNull StringBuilder toJsonString() {
         return PARSER.writeDataToStringBuilder(this);
     }
 
