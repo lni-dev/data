@@ -19,198 +19,55 @@ package me.linusdev.data.parser;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.Writer;
 
 public class ParseHelper {
 
-    /**
-     * Escapes ", \, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
-     * @param s the string to escape
-     * @param str the stringBuilder, the escaped string should be addded to
-     */
-    protected static void escape(@NotNull String s, @NotNull StringBuilder str) {
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            switch (ch) {
-                case '"':
-                    str.append("\\\"");
-                    break;
-                case '\\':
-                    str.append("\\\\");
-                    break;
-                case '\n':
-                    str.append("\\n");
-                    break;
-                case '\f':
-                    str.append("\\f");
-                    break;
-                case '\r':
-                    str.append("\\r");
-                    break;
-                case '\t':
-                    str.append("\\t");
-                    break;
-                case '\b':
-                    str.append("\\b");
-                    break;
-                default:
-                    //Reference: http://www.unicode.org/versions/Unicode5.1.0/
-                    if (ch <= '\u001F' || (ch >= '\u007F' && ch <= '\u009F') || (ch >= '\u2000' && ch <= '\u20FF')) {
-                        String ss = Integer.toHexString(ch);
-                        str.append("\\u");
-                        for (int k = 0; k < 4 - ss.length(); k++) {
-                            str.append('0');
-                        }
-                        str.append(ss.toUpperCase());
-                    } else {
-                        str.append(ch);
-                    }
-            }
+    public static void escape2(@NotNull String s, @NotNull StringBuilder str) {
+        try {
+            escape2(s, (Appendable) str);
+        } catch (IOException ignored) {
+            //will never happen, because StringBuilder does not throw this Exception
         }
     }
 
-    /**
-     * Escapes ", \, /, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
-     * @param s the string to escape
-     * @param str the stringBuilder, the escaped string should be addded to
-     */
-    protected static void escapeWithForwardSlash(@NotNull String s, @NotNull StringBuilder str) {
+    public static void escape2(@NotNull String s, @NotNull Appendable str) throws IOException {
         for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            switch (ch) {
-                case '/':
-                    str.append("\\/");
-                    break;
-                case '"':
-                    str.append("\\\"");
-                    break;
-                case '\\':
-                    str.append("\\\\");
-                    break;
-                case '\n':
-                    str.append("\\n");
-                    break;
-                case '\f':
-                    str.append("\\f");
-                    break;
-                case '\r':
-                    str.append("\\r");
-                    break;
-                case '\t':
-                    str.append("\\t");
-                    break;
-                case '\b':
-                    str.append("\\b");
-                    break;
-                default:
-                    //Reference: http://www.unicode.org/versions/Unicode5.1.0/
-                    if (ch <= '\u001F' || (ch >= '\u007F' && ch <= '\u009F') || (ch >= '\u2000' && ch <= '\u20FF')) {
-                        String ss = Integer.toHexString(ch);
-                        str.append("\\u");
-                        for (int k = 0; k < 4 - ss.length(); k++) {
-                            str.append('0');
-                        }
-                        str.append(ss.toUpperCase());
-                    } else {
-                        str.append(ch);
-                    }
+            char c = s.charAt(i);
+
+            if(c == '/') {
+                str.append("\\/");
+
+            } else if (c == '\"') {
+                str.append("\\\"");
+
+            } else if (c == '\\') {
+                str.append("\\\\");
+
+            } else if (c == '\n') {
+                str.append("\\n");
+
+            } else if (c == '\f') {
+                str.append("\\f");
+
+            } else if (c == '\r') {
+                str.append("\\r");
+
+            } else if (c == '\t') {
+                str.append("\\t");
+
+            } else if (c == '\b') {
+                str.append("\\b");
+
+            } else if (c < '\u0020' || (c >= '\u007F' && c <= '\u009F')){
+                String ss = Integer.toHexString(c);
+                str.append("\\u");
+                str.append("0".repeat(Math.max(0, 4 - ss.length())));
+                str.append(ss.toUpperCase());
+
+            } else {
+                str.append(c);
+
             }
         }
     }
-
-    /**
-     * Escapes ", \, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
-     * @param s the string to escape
-     * @param str the stringBuilder, the escaped string should be addded to
-     */
-    protected static void escape(@NotNull String s, @NotNull Writer str) throws IOException {
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            switch (ch) {
-                case '"':
-                    str.append("\\\"");
-                    break;
-                case '\\':
-                    str.append("\\\\");
-                    break;
-                case '\n':
-                    str.append("\\n");
-                    break;
-                case '\f':
-                    str.append("\\f");
-                    break;
-                case '\r':
-                    str.append("\\r");
-                    break;
-                case '\t':
-                    str.append("\\t");
-                    break;
-                case '\b':
-                    str.append("\\b");
-                    break;
-                default:
-                    //Reference: http://www.unicode.org/versions/Unicode5.1.0/
-                    if (ch <= '\u001F' || (ch >= '\u007F' && ch <= '\u009F') || (ch >= '\u2000' && ch <= '\u20FF')) {
-                        String ss = Integer.toHexString(ch);
-                        str.append("\\u");
-                        for (int k = 0; k < 4 - ss.length(); k++) {
-                            str.append('0');
-                        }
-                        str.append(ss.toUpperCase());
-                    } else {
-                        str.append(ch);
-                    }
-            }
-        }
-    }
-
-    /**
-     * Escapes ", \, /, \n, \f, \r, \t, \b and Characters with matching unicode: ch &lt;= '\u001f' || (ch &gt;= '\u007f' &amp;&amp; ch &lt;= '\u009F') || (ch &gt;= '\u2000' &amp;&amp; ch &lt;= '\u20FF')
-     * @param s the string to escape
-     * @param str the stringBuilder, the escaped string should be addded to
-     */
-    protected static void escapeWithForwardSlash(@NotNull String s, @NotNull Writer str) throws IOException {
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            switch (ch) {
-                case '/':
-                    str.append("\\/");
-                    break;
-                case '"':
-                    str.append("\\\"");
-                    break;
-                case '\\':
-                    str.append("\\\\");
-                    break;
-                case '\n':
-                    str.append("\\n");
-                    break;
-                case '\f':
-                    str.append("\\f");
-                    break;
-                case '\r':
-                    str.append("\\r");
-                    break;
-                case '\t':
-                    str.append("\\t");
-                    break;
-                case '\b':
-                    str.append("\\b");
-                    break;
-                default:
-                    //Reference: http://www.unicode.org/versions/Unicode5.1.0/
-                    if (ch <= '\u001F' || (ch >= '\u007F' && ch <= '\u009F') || (ch >= '\u2000' && ch <= '\u20FF')) {
-                        String ss = Integer.toHexString(ch);
-                        str.append("\\u");
-                        for (int k = 0; k < 4 - ss.length(); k++) {
-                            str.append('0');
-                        }
-                        str.append(ss.toUpperCase());
-                    } else {
-                        str.append(ch);
-                    }
-            }
-        }
-    }
-
 }

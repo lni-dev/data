@@ -17,7 +17,7 @@
 package me.linusdev.data;
 
 /**
- * implement this, if your Object can be simplified to a Object parsable by any {@link Data} parser.
+ * implement this, if your Object can be simplified to an Object parsable by any {@link AbstractData} parser.
  */
 public interface SimpleDatable{
 

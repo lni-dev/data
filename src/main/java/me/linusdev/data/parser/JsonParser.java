@@ -16,776 +16,324 @@
 
 package me.linusdev.data.parser;
 
-import me.linusdev.data.*;
+import me.linusdev.data.AbstractData;
+import me.linusdev.data.Datable;
+import me.linusdev.data.SimpleDatable;
+import me.linusdev.data.entry.Entry;
+import me.linusdev.data.implemantations.DataListImpl;
 import me.linusdev.data.parser.exceptions.ParseException;
-import me.linusdev.data.parser.exceptions.ParseValueException;
 import me.linusdev.data.parser.exceptions.UnexpectedCharacterException;
 import me.linusdev.data.parser.exceptions.UnexpectedEndException;
+import me.linusdev.data.so.SOData;
+import me.linusdev.data.so.SOEntryImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Locale;
+import java.util.*;
+import java.util.function.Supplier;
 
-
-/**
- * This class is used to parse {@link Data} to a json string and vice versa
- *
- * <br><br>
- *
- * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">{@link Data} to json-string can parse:</a>
- * <ul>
- *     <li>
- *         {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link String},
- *     </li>
- *     <li>
- *         {@link Datable}
- *     </li>
- *     <li>
- *          any primitive type array
- *     </li>
- *     <li>
- *         {@link Object}[] and {@link Collection} of the before mentioned Classes
- *     </li>
- * </ul>
- * <br>
- * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">json-string to {@link Data} can parse:</a>
- * <ul>
- *     <li style="padding-top:0">
- *         false/true to {@link Boolean} (ignores case)
- *     </li>
- *     <li>
- *         null to {@code null} (ignores case)
- *     </li>
- *     <li>
- *         Integer Numbers (1, 4, 5, ...) to {@link Long} <br>
- *     (if {@link #setIdentifyNumberValues(boolean)} is set to false (standard) while converting to json-string(!))
- *     </li>
- *     <li>
- *         Decimal Numbers (5.6, ...) to {@link Double} <br>
- *     (if {@link #setIdentifyNumberValues(boolean)} is set to false (standard) while converting to json-string(!))<br>
- *     </li>
- *     <li>
- *         "strings" to {@link String}
- *     </li>
- *     <li>
- *         Arrays ([...]) to {@link ArrayList<Object>}&lt;Object&gt;
- *     </li>
- *     <li>
- *         any other values are not supported and will most likely cause a {@link ParseException}
- *     </li>
- * </ul>
- */
 public class JsonParser {
 
-    private static final char BYTE_TOKEN = 'B';
-    private static final char SHORT_TOKEN = 'S';
-    private static final char INTEGER_TOKEN = 'I';
-    private static final char LONG_TOKEN = 'L';
-    private static final char FLOAT_TOKEN = 'F';
-    private static final char DOUBLE_TOKEN = 'D';
+    public static final int CURLY_BRACKET_OPEN_CHAR      = '{';
+    public static final int CURLY_BRACKET_CLOSE_CHAR     = '}';
+    public static final int SQUARE_BRACKET_OPEN_CHAR     = '[';
+    public static final int SQUARE_BRACKET_CLOSE_CHAR    = ']';
+    public static final int QUOTE_CHAR = '\"';
+    public static final int COLON_CHAR = ':';
+    public static final int NEW_LINE_CHAR = '\n';
+    public static final int COMMA_CHAR = ',';
 
-    //readFromStream
-    private Reader reader = null;
-    private ParseTracker tracker = null;
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
+    public static final String NULL = "null";
 
-    //toJsonString
-    private StringBuilder str = null;
+    public static final String DEFAULT_ARRAY_WRAPPER_KEY = "array";
 
-    //writeData
-    private Writer writer;
+    //Configurable stuff
+    private @NotNull String indent = "\t";
 
-    private SpaceOffsetTracker offset = null;
+    private @NotNull Supplier<SOData> dataSupplier = SOData::newOrderedDataWithUnknownSize;
+    private @NotNull String arrayWrapperKey = DEFAULT_ARRAY_WRAPPER_KEY;
+    private boolean allowNewLineInStrings = true;
 
-    private String offsetString = "  ";
-    private boolean escapeForwardSlash = false;
-    private boolean identifyNumberValues = false;
-
-    public JsonParser() {
-
-    }
-
-    public Data readDataFroResourceFile(String resource) throws IOException, ParseException, NullPointerException {
-        Data data;
-        try {
-            InputStream in = JsonParser.class.getClassLoader().getResourceAsStream(resource);
-            if (in == null) return null;
-            reader = new BufferedReader(new InputStreamReader(in));
-            tracker = new ParseTracker();
-            data = readDataFromStream(nextFromStream(true));
-        } finally {
-            reader.close();
-        }
-
-        return data;
-    }
-
-    public Data readDataFromFile(Path filePath) throws IOException, ParseException {
-        Data data;
-        try {
-            reader = Files.newBufferedReader(filePath);
-            tracker = new ParseTracker();
-            data = readDataFromStream(nextFromStream(true));
-        } finally {
-            reader.close();
-        }
-
-        return data;
-    }
-
-    /**
-     * <p>
-     *     This will close the reader once finished reading or if an exception has been thrown
-     * </p>
-     * <p>
-     *     This cannot read pure json arrays (if the json starts with '[' instead of '{')
-     * </p>
-     * @param reader {@link Reader} to read from
-     * @return {@link Data}
-     * @see #readDataFromReader(Reader, boolean, String) 
-     */
-    public Data readDataFromReader(Reader reader) throws ParseException, IOException {
-        return readDataFromReader(reader, false, null);
-    }
-
-    /**
-     * <p>
-     *     This will close the reader once finished reading or if an exception has been thrown
-     * </p>
-     * @param reader {@link Reader} to read from
-     * @param autoArray if the json starts with an array ("[...]"), it will parse this into a {@link Data}
-     * @param arrayKey the key, which the array should have in the created {@link Data}
-     * @return {@link Data}
-     */
-    public Data readDataFromReader(Reader reader, boolean autoArray, @Nullable String arrayKey) throws ParseException, IOException {
-        Data data;
-        try {
-            this.reader = reader;
-            tracker = new ParseTracker();
-            char c = nextFromStream(true);
-
-            if (c == '[' && autoArray) {
-                data = new Data(1);
-                Entry entry = new Entry(arrayKey);
-                c = readArrayFromReader(reader, c, entry);
-                data.addEntry(entry); // we can use this here, since we created the Data right before
-            } else {
-                data = readDataFromStream(c);
-            }
-        } finally {
-            reader.close();
-        }
-
-        return data;
-    }
-
-    /**
+    /*
      *
+     *              Config setter
+     *
+     */
+
+    /**
+     * What to use as indent.<br>
+     * Default: {@code "\t"}
+     * @param indent {@link String}
+     */
+    public void setIndent(@NotNull String indent) {
+        this.indent = indent;
+    }
+
+    /**
+     * When this parser reads a json-object, this {@link Supplier} is used to create a new {@link SOData} object.<br>
+     * Default: {@code SOData::newOrderedDataWithUnknownSize}
+     * @param dataSupplier {@link Supplier} to supply with {@link SOData}
+     */
+    public void setDataSupplier(@NotNull Supplier<SOData> dataSupplier) {
+        this.dataSupplier = dataSupplier;
+    }
+
+    /**
+     * If the json to read, does not start with a json-object, but instead with a json-array, the array will be available
+     * with this key in the returned {@link SOData}.<br>
+     * Default: {@value #DEFAULT_ARRAY_WRAPPER_KEY}
+     * @param arrayWrapperKey key to use when wrapping the array in a {@link SOData}
+     */
+    public void setArrayWrapperKey(@NotNull String arrayWrapperKey) {
+        this.arrayWrapperKey = arrayWrapperKey;
+    }
+
+    /**
+     * Default: {@code true}
+     * @param allowNewLineInStrings whether to allow new lines in keys and string-values while reading
+     */
+    public void setAllowNewLineInStrings(boolean allowNewLineInStrings) {
+        this.allowNewLineInStrings = allowNewLineInStrings;
+    }
+
+    /*
+     *
+     *              Stream to Data
+     *
+     */
+
+    /**
+     * parses the content of given stream to a {@link SOData}.<br>
+     * The stream will be {@link InputStream#close() closed} after parsing finished.<br>
+     * @param stream the stream to read the json from
+     * @return parsed {@link SOData}
+     * @throws IOException while parsing
+     * @throws ParseException while parsing
+     */
+    public SOData parseStream(@NotNull InputStream stream) throws IOException, ParseException {
+        JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(stream)));
+
+        try {
+            return parse(reader);
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * parses the content of given reader to a {@link SOData}.<br>
+     * The reader should not be wrapped in a {@link BufferedReader}, as this method does this.<br>
+     * The reader will be {@link Reader#close() closed} after parsing finished.<br>
+     * @param reader the reader to read the json from
+     * @return parsed {@link SOData}
+     * @throws IOException while parsing
+     * @throws ParseException while parsing
+     */
+    public SOData parseReader(@NotNull Reader reader) throws IOException, ParseException {
+        JsonReader jsonReader = new JsonReader(new BufferedReader(reader));
+
+        try {
+            return parse(jsonReader);
+        } finally {
+            jsonReader.close();
+        }
+    }
+
+    /**
+     * parses a json-object or a json-array (will be wrapped with {@link #arrayWrapperKey}) to a {@link SOData}.
      * @param reader to read from
-     * @return the Array, represented by the read json. for more information see {@link JsonParser}
-     * @throws IOException
-     * @throws ParseException
+     * @return parsed {@link SOData}
+     * @throws IOException while parsing
+     * @throws ParseException while parsing
      */
-    public ArrayList readArrayFromReader(Reader reader) throws IOException, ParseException {
-        this.reader = reader;
-        tracker = new ParseTracker();
+    private SOData parse(@NotNull JsonReader reader) throws IOException, ParseException {
+        ParseTracker tracker = new ParseTracker();
+        int i = reader.read(tracker);
+        if(i == -1) return dataSupplier.get();
 
-        try {
-            SimpleEntry entry = new SimpleEntry();
-            char c = readArrayFromReader(reader, nextFromStream(true), entry);
-            return (ArrayList) entry.getValue();
-        } finally {
-            reader.close();
+        if(i == CURLY_BRACKET_OPEN_CHAR) {
+            return parseJsonObject(reader, tracker);
+
+        } else if (i == SQUARE_BRACKET_OPEN_CHAR) {
+            SOData data = dataSupplier.get();
+            SOEntryImpl entry = new SOEntryImpl(arrayWrapperKey);
+            entry.setValue(parseJsonArray(reader, tracker));
+            data.addEntry(entry);
+            return data;
+
+        } else {
+            throw new UnexpectedCharacterException((char) i, tracker);
         }
 
     }
 
     /**
-     *
-     * @param reader the reader to read from
-     * @param c last read char, should be '['
-     * @param entry the entry, the array should be saved to
-     * @return might not return the correct char, if end is reached, see ,{@link #readValueFromStream(char, SimpleEntry, boolean)}
-     * @throws IOException
-     * @throws ParseException
+     * Parses a json-object to a {@link SOData}
+     * @param reader to read from
+     * @param tracker {@link ParseTracker}
+     * @return parsed {@link SOData}
+     * @throws IOException while parsing
+     * @throws ParseException while parsing
      */
-    private char readArrayFromReader(Reader reader, char c, SimpleEntry entry) throws IOException, ParseException {
-        if (c != '[')
-            throw new UnexpectedCharacterException(c, tracker);
+    private SOData parseJsonObject(@NotNull JsonReader reader, @NotNull ParseTracker tracker) throws IOException, ParseException {
+        int i = reader.read(tracker);
+        SOData data = dataSupplier.get();
 
-        c = readValueFromStream(c, entry, true);
+        if(i == CURLY_BRACKET_CLOSE_CHAR) return data;
 
-        return c;
-    }
+        while(i != -1){
+            //inside the json-object, we first expect a key...
+            if(i != QUOTE_CHAR) throw new UnexpectedCharacterException((char) i, tracker);
 
+            SOEntryImpl entry = new SOEntryImpl(reader.readString(allowNewLineInStrings, tracker));
 
-    /**
-     * Does NOT close the writer after json has been written!
-     *
-     * @param data
-     * @param writer
-     * @throws IOException
-     */
-    public void writeData(Data data, Writer writer) throws IOException {
-        this.writer = writer;
-        offset = new SpaceOffsetTracker(offsetString);
-        if (data == null) data = new Data(0);
-        writeJson(data);
-    }
+            //now we expect a colon (':')
+            i = reader.read(tracker);
+            if(i != COLON_CHAR) throw new UnexpectedCharacterException((char) i, tracker);
 
-    public StringBuilder getJsonString(Data data) {
-        str = new StringBuilder();
-        offset = new SpaceOffsetTracker(offsetString);
-        return generateJsonString(data);
-    }
+            //now read the value for the key
+            entry.setValue(parseJsonValue(reader, tracker));
+            //add the entry once it is filled. If the entry was added first, it could cause problems, in some AbstractData implementations
+            data.addEntry(entry);
 
-
-    /**
-     * Default: "  "
-     * used for the indentation of the json string
-     *
-     * @param offsetString
-     */
-    public void setOffsetString(String offsetString) {
-        this.offsetString = offsetString;
-    }
-
-    /**
-     * Default: false
-     * Whether "/" should be escaped or not
-     *
-     * @param escapeForwardSlash
-     */
-    public void setEscapeForwardSlash(boolean escapeForwardSlash) {
-        this.escapeForwardSlash = escapeForwardSlash;
-    }
-
-    /**
-     * Default: false
-     * puts a single character after a number, to identify which type of number it is
-     * Byte: B {@link JsonParser#BYTE_TOKEN}
-     * Short: S {@link JsonParser#SHORT_TOKEN}
-     * Integer: I {@link JsonParser#INTEGER_TOKEN}
-     * Long: L {@link JsonParser#LONG_TOKEN}
-     * Float: F {@link JsonParser#FLOAT_TOKEN}
-     * Double: D {@link JsonParser#DOUBLE_TOKEN}
-     *
-     * @param identifyNumberValues
-     */
-    public void setIdentifyNumberValues(boolean identifyNumberValues) {
-        this.identifyNumberValues = identifyNumberValues;
-    }
-
-
-    private Data readDataFromStream(char c) throws IOException, ParseException {
-        Data data = new Data(1);
-
-        if ((c) != '{') throw new UnexpectedCharacterException(c, tracker);
-        if((c = nextFromStream(true)) == '}') return data; // Empty Data
-
-        while (true) {
-            if ((c) != '"') throw new UnexpectedCharacterException(c, tracker);
-
-            Entry e = new Entry(readKeyFromStream());
-            if ((c = nextFromStream(false)) != ':') throw new UnexpectedCharacterException(c, tracker);
-            c = readValueFromStream(nextFromStream(true), e);
-            data.addEntry(e);
-            if (c == ','){
-                c = nextFromStream(true);
+            i = reader.read(tracker);
+            //now expect a comma, or a '}'
+            if(i == COMMA_CHAR) {
+                i = reader.read(tracker);
                 continue;
             }
-            else if (c == '}') break;
-            else throw new UnexpectedCharacterException(c, tracker);
+            if(i == CURLY_BRACKET_CLOSE_CHAR) return data;
+            throw new UnexpectedCharacterException((char) i, tracker);
         }
 
-        return data;
+        throw new UnexpectedEndException(tracker);
     }
 
     /**
-     * reads a value from the {@link #reader}
-     * <p>
-     * The value might be
-     * {@link String}
-     * {@link Data}
-     * {@link ArrayList} (Arrays are always returned as ArrayLists)
-     * {@link Number}
-     *
-     * @param c     the last read char in the stream
-     * @param entry the entry, which value is to be set
-     * @return the last read char in the stream
-     * @throws ParseException
-     * @throws IOException
+     * Parses a json-value to {@link String}, {@link SOData}, {@link List}, {@link Boolean}, {@link Number} or {@code null}
+     * @param reader to read from
+     * @param tracker {@link ParseTracker}
+     * @return {@link String}, {@link SOData}, {@link List}, {@link Boolean}, {@link Number} or {@code null}
+     * @throws IOException while parsing
+     * @throws ParseException while parsing
      */
-    private char readValueFromStream(char c, SimpleEntry entry) throws ParseException, IOException {
-        return readValueFromStream(c, entry, false);
-    }
+    private @Nullable Object parseJsonValue(@NotNull JsonReader reader, @NotNull ParseTracker tracker) throws IOException, ParseException {
+        int i = reader.read(tracker);
 
-    /**
-     * reads a value from the {@link #reader}
-     * <p>
-     * The value might be: <br>
-     * {@link String}<br>
-     * {@link Data}<br>
-     * {@link ArrayList<Object>}&lt;Object&gt; (Arrays are always returned as ArrayLists) <br>
-     * {@link Number}<br>
-     *
-     * @param c                             the last read char in the stream
-     * @param entry                         the entry, which value is to be set
-     * @param ignoreUnexpectedEndAfterArray used by {@link #readArrayFromReader(Reader)}
-     * @return the last read char in the stream
-     * @throws ParseException
-     * @throws IOException
-     */
-    private char readValueFromStream(char c, SimpleEntry entry, boolean ignoreUnexpectedEndAfterArray) throws ParseException, IOException {
+        if(i == QUOTE_CHAR) {
+            //simple string
+            return reader.readString(allowNewLineInStrings, tracker);
 
-        if (c == '"') {
-            entry.setValue(intrudeStringValueFrom());
-            return nextFromStream(true);
+        } else if(i == CURLY_BRACKET_OPEN_CHAR) {
+            //json-object
+            return parseJsonObject(reader, tracker);
 
-        } else if (c == '{') {
-            entry.setValue(readDataFromStream(c));
-            return nextFromStream(true);
-
-        } else if (c == '[') {
-            c = nextFromStream(true);
-            if (c == ']') {
-                entry.setValue(new ArrayList<>());
-                return nextFromStream(true, ignoreUnexpectedEndAfterArray);
-            }
-
-            ArrayList<Object> list = new ArrayList<>();
-            while (c != ']') {
-
-                if (c == ',') throw new UnexpectedCharacterException(c, tracker);
-
-                SimpleEntry e = new SimpleEntry();
-                c = readValueFromStream(c, e);
-                list.add(e.getValue());
-
-                if (c == ']') break;
-                if (c != ',') throw new UnexpectedCharacterException(c, tracker);
-                c = nextFromStream(true);
-            }
-            entry.setValue(list);
-            return nextFromStream(true, ignoreUnexpectedEndAfterArray);
+        } else if (i == SQUARE_BRACKET_OPEN_CHAR) {
+            //json-array
+            return parseJsonArray(reader, tracker);
 
         } else {
-            StringBuilder value = new StringBuilder();
-            c = readRawValueFromStream(c, value);
+            //boolean or number
+            reader.pushBack(i);
+            return reader.readValue(tracker);
 
-            if (value.toString().trim().equalsIgnoreCase("true")) entry.setValue(true);
-            else if (value.toString().trim().equalsIgnoreCase("false")) entry.setValue(false);
-            else if (value.toString().trim().equalsIgnoreCase("null")) entry.setValue(null);
-            else {
-                try {
-                    switch (value.charAt(value.length() - 1)) {
-                        case BYTE_TOKEN:
-                            entry.setValue(Byte.parseByte(value.substring(0, value.length() - 1)));
-                            break;
-
-                        case SHORT_TOKEN:
-                            entry.setValue(Short.parseShort(value.substring(0, value.length() - 1)));
-                            break;
-
-                        case INTEGER_TOKEN:
-                            entry.setValue(Integer.parseInt(value.substring(0, value.length() - 1)));
-                            break;
-
-                        case LONG_TOKEN:
-                            entry.setValue(Long.parseLong(value.substring(0, value.length() - 1)));
-                            break;
-
-                        case FLOAT_TOKEN:
-                            entry.setValue(Float.parseFloat(value.substring(0, value.length() - 1)));
-                            break;
-
-                        case DOUBLE_TOKEN:
-                            entry.setValue(Double.parseDouble(value.substring(0, value.length() - 1)));
-                            break;
-
-                        default:
-                            String vs = value.toString();
-                            entry.setValue(NumberFormat.getNumberInstance(Locale.ENGLISH).parse(vs));
-                            break;
-                    }
-                } catch (NumberFormatException | java.text.ParseException e) {
-                    throw new ParseValueException(e, value.toString(), tracker);
-                }
-            }
-
-            return c;
         }
     }
 
     /**
-     * reads into the StringBuilder, until "}", "]" or "," is found
-     *
-     * @param c     first char to read
-     * @param value the StringBuilder to append to
-     * @return
-     * @throws IOException
-     * @throws UnexpectedEndException
-     * @throws UnexpectedCharacterException
+     * Parses a json-array to a {@link List} of {@link Object}.<br>
+     * The elements of the returned list are parsed with {@link #parseJsonValue(JsonReader, ParseTracker)}.
+     * @param reader to read from
+     * @param tracker {@link ParseTracker}
+     * @return {@link List} of {@link Object}
+     * @throws IOException while parsing
+     * @throws ParseException while parsing
      */
-    private char readRawValueFromStream(char c, StringBuilder value) throws IOException, UnexpectedEndException, UnexpectedCharacterException {
-        value.append(c);
+    private @NotNull List<Object> parseJsonArray(@NotNull JsonReader reader, @NotNull ParseTracker tracker) throws IOException, ParseException {
+        int i = reader.read(tracker);
+        LinkedList<Object> list = new LinkedList<>();
 
-        int read;
-        while ((read = reader.read()) != -1) {
-            c = (char) read;
-            if (c == '\n') {
-                tracker.nextLine();
-                c = nextFromStream(true);
-                if (c == ']' || c == '}' || c == ',') return c;
-                throw new UnexpectedCharacterException(c, tracker);
+        //check if it is an empty array
+        if(i == SQUARE_BRACKET_CLOSE_CHAR) return list;
+        reader.pushBack(i);
+
+        while(i != -1){
+            list.add(parseJsonValue(reader, tracker));
+
+            i = reader.read(tracker);
+            //now expect a comma, or a ']'
+            if(i == COMMA_CHAR) {
+                continue;
             }
-
-            if (c == ']' || c == '}' || c == ',') return c;
-            value.append(c);
+            else if(i == SQUARE_BRACKET_CLOSE_CHAR) return list;
+            throw new UnexpectedCharacterException((char) i, tracker);
         }
 
-        throw new UnexpectedEndException();
+        throw new UnexpectedEndException(tracker);
     }
 
-    private String intrudeStringValueFrom() throws UnexpectedCharacterException, IOException, UnexpectedEndException {
-        StringBuilder str = new StringBuilder();
 
-        int read = reader.read();
-        char c;
-        boolean escaped = false;
-        while (read != -1) {
-            c = (char) read;
+    /*
+     *
+     *              Data to String
+     *
+     */
 
-            if (escaped) {
-                escaped = false;
-                switch (c) {
-                    case 'n':
-                        str.append('\n');
-                        break;
-
-                    case 'f':
-                        str.append('\f');
-                        break;
-
-                    case 'r':
-                        str.append('\r');
-                        break;
-
-                    case 't':
-                        str.append('\t');
-                        break;
-
-                    case 'b':
-                        str.append('\b');
-                        break;
-
-                    case '\\':
-                        str.append('\\');
-                        break;
-
-                    case '"':
-                        str.append('\"');
-                        break;
-
-                    case 'u':
-                        StringBuilder esc = new StringBuilder(4);
-                        for (int i = 0; i < 4; i++) {
-                            if ((read = reader.read()) == -1) throw new UnexpectedEndException();
-                            esc.append((char) read);
-                        }
-
-                        str.append((char) Integer.parseInt(esc.toString(), 16));
-                        break;
-
-                    default:
-                        str.append(c);
-
-                }
-            } else {
-                switch (c) {
-                    case '\\':
-                        escaped = true;
-                        break;
-                    case '"':
-                        return str.toString();
-                    case '\n':
-                        throw new UnexpectedCharacterException(c, tracker);
-                    default:
-                        str.append(c);
-                }
-            }
-
-            read = reader.read();
-        }
-
-        throw new UnexpectedEndException();
+    /**
+     *
+     * @param data {@link AbstractData} to write to a {@link StringBuffer}
+     * @return {@link StringBuffer#toString()}
+     * @throws IOException {@link IOException} while writing
+     */
+    public String writeDataToString(@Nullable AbstractData<?, ?> data) throws IOException {
+        return writeDataToStringBuilder(data).toString();
     }
 
     /**
-     * reads until a " is found
      *
-     * @return
-     * @throws IOException
-     * @throws UnexpectedCharacterException
+     * @param data {@link AbstractData} to write to a {@link StringBuffer}
+     * @return {@link StringBuffer}
+     * @throws IOException {@link IOException} while writing
      */
-    private String readKeyFromStream() throws IOException, UnexpectedCharacterException, UnexpectedEndException {
-        StringBuilder str = new StringBuilder();
-
-        int read = reader.read();
-        char c;
-        while (read != -1) {
-            c = (char) read;
-            switch (c) {
-                case '"':
-                    return str.toString();
-                case '\n':
-                    throw new UnexpectedCharacterException(c, tracker);
-                default:
-                    str.append(c);
-            }
-
-            read = reader.read();
+    public StringBuilder writeDataToStringBuilder(@Nullable AbstractData<?, ?> data){
+        StringBuilder writer = new StringBuilder(data == null ? 10 : data.size() * 10);
+        try {
+            writeData(writer, data);
+        } catch (IOException ignored) {
+            //will never happen, because StringBuilder, does not throw this exception, but let's print it anyway.
+            ignored.printStackTrace();
         }
-
-        throw new UnexpectedEndException();
+        return writer;
     }
 
     /**
-     * reads until a character, which is not space, tab or a new line is found
      *
-     * @param allowNewLine
-     * @return
-     * @throws IOException
-     * @throws UnexpectedEndException       when stream ends
-     * @throws UnexpectedCharacterException
+     * @param data {@link AbstractData} to write. {@code null} will write an empty Data: "{}"
+     * @param writer {@link Writer} to write to
+     * @throws IOException {@link IOException} while writing
      */
-    private char nextFromStream(boolean allowNewLine) throws IOException, UnexpectedEndException, UnexpectedCharacterException {
-        return nextFromStream(allowNewLine, false);
+    public void writeData(@NotNull Appendable writer, @Nullable AbstractData<?, ?> data) throws IOException {
+        SpaceOffsetTracker offset = new SpaceOffsetTracker(indent);
+        writeJson(writer, offset, data);
     }
 
-    /**
-     * reads until a character, which is not space, tab or a new line is found
-     * <p>
-     * if end of reader is reached and ignoreUnexpectedEnd is true, 'a' is returned
-     *
-     * @param allowNewLine
-     * @param ignoreUnexpectedEnd
-     * @return
-     * @throws IOException
-     * @throws UnexpectedEndException       when stream ends and ignoreUnexpectedEnd is false
-     * @throws UnexpectedCharacterException
-     */
-    private char nextFromStream(boolean allowNewLine, boolean ignoreUnexpectedEnd) throws IOException, UnexpectedEndException, UnexpectedCharacterException {
-        int read = reader.read();
-        char c;
-        while (read != -1) {
-            c = (char) read;
-
-            switch (c) {
-                case ' ':
-                case '\t':
-                    break;
-                case '\n':
-                    if (allowNewLine) tracker.nextLine();
-                    else throw new UnexpectedCharacterException(c, tracker);
-                    break;
-                default:
-                    if (c <= '\u001F') break; //Apparently these characters are there too :c
-                    return c;
-            }
-
-            read = reader.read();
-        }
-
-        if (ignoreUnexpectedEnd)
-            return 'a';
-
-        throw new UnexpectedEndException();
-    }
-
-
-    /**
-     * Creates a beautiful json string of a {@link Data}
-     *
-     * @param data
-     * @return the json of a data as StringBuilder
-     */
-    private StringBuilder generateJsonString(@NotNull Data data) {
-        str.append('{');
-        offset.add();
-
-        boolean first = true;
-        for (Entry entry : data.getEntries()) {
-            if (!first) str.append(',');
-            else first = false;
-
-            str.append('\n').append(offset);
-            str.append('"').append(entry.getKey()).append("\": ");
-
-            jsonValueJsonString(entry.getValue());
-
-        }
-
-        str.append('\n');
-        offset.remove();
-        str.append(offset).append('}');
-
-
-        return str;
-    }
-
-
-    private void jsonValueJsonString(@Nullable Object value) {
-        if (value == null) {
-            str.append("null");
-
-        } else if (value instanceof Datable) {
-            generateJsonString(((Datable) value).getData());
-
-        } else if (value instanceof SimpleDatable) {
-            jsonValueJsonString(((SimpleDatable) value).simplify());
-
-        } else if (value instanceof String) {
-            str.append('\"');
-            if (escapeForwardSlash) ParseHelper.escapeWithForwardSlash((String) value, str);
-            else ParseHelper.escape((String) value, str);
-            str.append('\"');
-
-        } else if (value instanceof Boolean) {
-            str.append(value.toString());
-
-        } else if (value instanceof Integer) {
-            str.append(value.toString());
-            if (identifyNumberValues) str.append(INTEGER_TOKEN);
-
-        } else if (value instanceof Long) {
-            str.append(value.toString());
-            if (identifyNumberValues) str.append(LONG_TOKEN);
-
-        } else if (value instanceof Byte) {
-            str.append(value);
-            if (identifyNumberValues) str.append(BYTE_TOKEN);
-
-        } else if (value instanceof Short) {
-            str.append(value);
-            if (identifyNumberValues) str.append(SHORT_TOKEN);
-
-        } else if (value instanceof Double) {
-            str.append(value.toString());
-            if (identifyNumberValues) str.append(DOUBLE_TOKEN);
-
-        } else if (value instanceof Float) {
-            str.append(value.toString());
-            if (identifyNumberValues) str.append(FLOAT_TOKEN);
-
-        } else if (value instanceof Collection) {
-            str.append('[').append('\n');
-            offset.add();
-
-            boolean first = true;
-            for (Object o : (Collection) value) {
-                if (!first) str.append(',').append('\n');
-                else first = false;
-                str.append(offset);
-                jsonValueJsonString(o);
-            }
-
-            str.append('\n');
-            offset.remove();
-            str.append(offset).append(']');
-
-        } else if (value instanceof Object[]) {
-            jsonValueJsonString((Object[]) value);
-
-        } else if (value.getClass().isArray()) {
-            if (value instanceof byte[]) {
-                byte[] a = (byte[]) value;
-                Object[] o = new Object[a.length];
-                for (int i = 0; i < a.length; i++) o[i] = a[i];
-                jsonValueJsonString(o);
-
-            } else if (value instanceof short[]) {
-                short[] a = (short[]) value;
-                Object[] o = new Object[a.length];
-                for (int i = 0; i < a.length; i++) o[i] = a[i];
-                jsonValueJsonString(o);
-
-            } else if (value instanceof int[]) {
-                int[] a = (int[]) value;
-                Object[] o = new Object[a.length];
-                for (int i = 0; i < a.length; i++) o[i] = a[i];
-                jsonValueJsonString(o);
-
-            } else if (value instanceof long[]) {
-                long[] a = (long[]) value;
-                Object[] o = new Object[a.length];
-                for (int i = 0; i < a.length; i++) o[i] = a[i];
-                jsonValueJsonString(o);
-
-            } else if (value instanceof float[]) {
-                float[] a = (float[]) value;
-                Object[] o = new Object[a.length];
-                for (int i = 0; i < a.length; i++) o[i] = a[i];
-                jsonValueJsonString(o);
-
-            } else if (value instanceof double[]) {
-                double[] a = (double[]) value;
-                Object[] o = new Object[a.length];
-                for (int i = 0; i < a.length; i++) o[i] = a[i];
-                jsonValueJsonString(o);
-
-            }
-        } else {
-            //If the Object is none of the above, a simple string is added instead
-            str.append('"');
-            ParseHelper.escapeWithForwardSlash(value.toString(), str);
-            str.append('"');
-        }
-    }
-
-    private void jsonValueJsonString(@Nullable Object[] value) {
-        str.append('[').append('\n');
-        offset.add();
-
-        boolean first = true;
-        for (Object o : value) {
-            if (!first) str.append(',').append('\n');
-            else first = false;
-            str.append(offset);
-            jsonValueJsonString(o);
-        }
-
-        str.append('\n');
-        offset.remove();
-        str.append(offset).append(']');
-    }
-
-
-    /**
-     * Creates a beautiful json string of a {@link Data}
-     *
-     * @param data
-     * @return the json of a data as StringBuilder
-     */
-    private void writeJson(@Nullable Data data) throws IOException {
-        if (data == null) data = new Data(0);
+    private void writeJson(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @Nullable AbstractData<?, ?> data) throws IOException {
+        if (data == null) data = new DataListImpl(new ArrayList<>(0));
         writer.append('{');
         offset.add();
 
         boolean first = true;
-        for (Entry entry : data.getEntries()) {
+        for (Entry<?, ?> entry : data) {
             if (!first) writer.append(',');
             else first = false;
 
             writer.append('\n').append(offset.toString());
-            writer.append('"').append(entry.getKey()).append("\": ");
+            writer.append('"').append(Objects.toString(entry.getKey())).append("\": ");
 
-            writeJsonValue(entry.getValue());
+            writeJsonValue(writer, offset, entry.getValue());
 
         }
 
@@ -794,21 +342,19 @@ public class JsonParser {
         writer.append(offset.toString()).append('}');
     }
 
-
-    private void writeJsonValue(@Nullable Object value) throws IOException {
+    private void writeJsonValue(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @Nullable Object value) throws IOException {
         if (value == null) {
             writer.append("null");
 
         } else if (value instanceof Datable) {
-            writeJson(((Datable) value).getData());
+            writeJson(writer, offset, ((Datable) value).getData());
 
         } else if (value instanceof SimpleDatable) {
-            writeJsonValue(((SimpleDatable) value).simplify());
+            writeJsonValue(writer, offset, ((SimpleDatable) value).simplify());
 
         } else if (value instanceof String) {
             writer.append('\"');
-            if (escapeForwardSlash) ParseHelper.escapeWithForwardSlash((String) value, writer);
-            else ParseHelper.escape((String) value, writer);
+            ParseHelper.escape2((String) value, writer);
             writer.append('\"');
 
         } else if (value instanceof Boolean) {
@@ -816,27 +362,21 @@ public class JsonParser {
 
         } else if (value instanceof Integer) {
             writer.append(value.toString());
-            if (identifyNumberValues) writer.append(INTEGER_TOKEN);
 
         } else if (value instanceof Long) {
             writer.append(value.toString());
-            if (identifyNumberValues) writer.append(LONG_TOKEN);
 
         } else if (value instanceof Byte) {
             writer.append(value.toString());
-            if (identifyNumberValues) writer.append(BYTE_TOKEN);
 
         } else if (value instanceof Short) {
             writer.append(value.toString());
-            if (identifyNumberValues) writer.append(SHORT_TOKEN);
 
         } else if (value instanceof Double) {
             writer.append(value.toString());
-            if (identifyNumberValues) writer.append(DOUBLE_TOKEN);
 
         } else if (value instanceof Float) {
             writer.append(value.toString());
-            if (identifyNumberValues) writer.append(FLOAT_TOKEN);
 
         } else if (value instanceof Collection) {
             writer.append('[').append('\n');
@@ -847,7 +387,7 @@ public class JsonParser {
                 if (!first) writer.append(',').append('\n');
                 else first = false;
                 writer.append(offset.toString());
-                writeJsonValue(o);
+                writeJsonValue(writer, offset, o);
             }
 
             writer.append('\n');
@@ -855,56 +395,56 @@ public class JsonParser {
             writer.append(offset.toString()).append(']');
 
         } else if (value instanceof Object[]) {
-            writeJsonValue((Object[]) value);
+            writeJsonValue(writer, offset, (Object[]) value);
 
         } else if (value.getClass().isArray()) {
             if (value instanceof byte[]) {
                 byte[] a = (byte[]) value;
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
-                writeJsonValue(o);
+                writeJsonValue(writer, offset, o);
 
             } else if (value instanceof short[]) {
                 short[] a = (short[]) value;
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
-                writeJsonValue(o);
+                writeJsonValue(writer, offset, o);
 
             } else if (value instanceof int[]) {
                 int[] a = (int[]) value;
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
-                writeJsonValue(o);
+                writeJsonValue(writer, offset, o);
 
             } else if (value instanceof long[]) {
                 long[] a = (long[]) value;
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
-                writeJsonValue(o);
+                writeJsonValue(writer, offset, o);
 
             } else if (value instanceof float[]) {
                 float[] a = (float[]) value;
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
-                writeJsonValue(o);
+                writeJsonValue(writer, offset, o);
 
             } else if (value instanceof double[]) {
                 double[] a = (double[]) value;
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
-                writeJsonValue(o);
+                writeJsonValue(writer, offset, o);
 
             }
 
         } else {
             //If the Object is none of the above, a simple string is added instead
             writer.append('"');
-            ParseHelper.escapeWithForwardSlash(value.toString(), writer);
+            ParseHelper.escape2(value.toString(), writer);
             writer.append('"');
         }
     }
 
-    private void writeJsonValue(@NotNull Object[] value) throws IOException {
+    private void writeJsonValue(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @NotNull Object[] value) throws IOException {
         writer.append('[').append('\n');
         offset.add();
 
@@ -913,13 +453,12 @@ public class JsonParser {
             if (!first) writer.append(',').append('\n');
             else first = false;
             writer.append(offset.toString());
-            writeJsonValue(o);
+            writeJsonValue(writer, offset, o);
         }
 
         writer.append('\n');
         offset.remove();
         writer.append(offset.toString()).append(']');
     }
-
 
 }

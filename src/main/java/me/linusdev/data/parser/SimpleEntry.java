@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package me.linusdev.data;
+package me.linusdev.data.parser;
 
-public class SimpleEntry {
+import me.linusdev.data.entry.Entry;
+
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+public class SimpleEntry implements Entry<Object, Object> {
 
     private Object value = null;
 
@@ -26,6 +31,21 @@ public class SimpleEntry {
 
     public void setValue(Object value) {
         this.value = value;
+    }
+
+    @Override
+    public void overwriteGetValue(Function<Entry<Object, Object>, Object> getter) {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    @Override
+    public void overwriteSetValue(BiConsumer<Entry<Object, Object>, Object> setter) {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    @Override
+    public Object getKey() {
+        return null;
     }
 
     public Object getValue() {

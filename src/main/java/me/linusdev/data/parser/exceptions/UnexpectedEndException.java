@@ -16,5 +16,18 @@
 
 package me.linusdev.data.parser.exceptions;
 
+import me.linusdev.data.parser.ParseTracker;
+
 public class UnexpectedEndException extends ParseException{
+
+    public UnexpectedEndException(){super();}
+
+    public UnexpectedEndException(ParseTracker tracker) {
+        super(tracker);
+    }
+
+    @Override
+    public String getMessage() {
+        return "Unexpected end in line " + getParseTracker().getLine() + ". " + super.getMessage();
+    }
 }
