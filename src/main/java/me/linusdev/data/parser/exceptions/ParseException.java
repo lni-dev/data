@@ -16,7 +16,23 @@
 
 package me.linusdev.data.parser.exceptions;
 
+import me.linusdev.data.parser.ParseTracker;
+
 public class ParseException extends Exception{
 
+    private final ParseTracker tracker;
 
+    public ParseException(){
+        super();
+        tracker = null;
+    }
+
+    public ParseException(ParseTracker tracker) {
+        super();
+        this.tracker = tracker;
+    }
+
+    public ParseTracker getParseTracker() {
+        return tracker;
+    }
 }

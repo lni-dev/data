@@ -17,7 +17,7 @@
 package me.linusdev.data.implemantations;
 
 import me.linusdev.data.entry.Entry;
-import me.linusdev.data.parser.JsonParser;
+import me.linusdev.data.parser.OldJsonParser;
 import me.linusdev.data.so.SOData;
 import me.linusdev.data.so.SOEntryImpl;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ import java.util.List;
 
 
 /**
- * for more information on parsing, look here {@link JsonParser}
+ * for more information on parsing, look here {@link OldJsonParser}
  */
 public class DataListImpl implements SOData {
 

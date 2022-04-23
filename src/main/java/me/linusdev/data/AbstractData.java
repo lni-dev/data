@@ -36,6 +36,8 @@ import java.util.function.Consumer;
  */
 public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
 
+    public static final JsonParser PARSER = new JsonParser();
+
     /**
      * Adds a new {@link Entry}. <br>
      * <p>
@@ -407,8 +409,12 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      */
     int size();
 
+    /**
+     * Writes this {@link AbstractData} to a {@link StringBuilder}.
+     * @return {@link StringBuilder}
+     */
     default @Nullable StringBuilder toJsonString() {
-        return new JsonParser().getJsonString(this);
+        return PARSER.writeDataToStringBuilder(this);
     }
 
     @Override
