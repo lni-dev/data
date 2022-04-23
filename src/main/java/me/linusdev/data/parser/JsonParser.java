@@ -344,7 +344,6 @@ public class JsonParser {
      *
      * @param data {@link AbstractData} to write to a {@link StringBuffer}
      * @return {@link StringBuffer}
-     * @throws IOException {@link IOException} while writing
      */
     public StringBuilder writeDataToStringBuilder(@Nullable AbstractData<?, ?> data){
         StringBuilder writer = new StringBuilder(data == null ? 10 : data.size() * 10);
