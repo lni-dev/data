@@ -22,6 +22,8 @@ import java.io.IOException;
 
 public class ParseHelper {
 
+    public static final String[] ESCAPE_PRE_ZEROS = {"", "0", "00", "000", "0000"};
+
     public static void escape2(@NotNull String s, @NotNull StringBuilder str) {
         try {
             escape2(s, (Appendable) str);
@@ -61,9 +63,8 @@ public class ParseHelper {
             } else if (c < '\u0020' || (c >= '\u007F' && c <= '\u009F')){
                 String ss = Integer.toHexString(c);
                 str.append("\\u");
-                str.append("0".repeat(Math.max(0, 4 - ss.length())));
+                str.append(ESCAPE_PRE_ZEROS[Math.max(0, 4 - ss.length())]);
                 str.append(ss.toUpperCase());
-
             } else {
                 str.append(c);
 
