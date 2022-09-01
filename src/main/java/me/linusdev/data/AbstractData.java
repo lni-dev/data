@@ -19,6 +19,7 @@ package me.linusdev.data;
 import me.linusdev.data.converter.Converter;
 import me.linusdev.data.converter.ExceptionConverter;
 import me.linusdev.data.entry.Entry;
+import me.linusdev.data.factory.ValueFactory;
 import me.linusdev.data.implemantations.DataMapImpl;
 import me.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.Contract;
@@ -229,6 +230,27 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     }
 
     /**
+     * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
+     * If the value returned by {@link #get(Object)} with given key is {@code null},
+     * {@link ExceptionConverter#convert(Object)} with {@code null}.
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @param <E> the Exception thrown by your {@link ExceptionConverter}
+     * @return result {@link R} or {@code null} if your converter returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
+     * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    default  <C extends V, R, E extends Exception> R getAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+        C convertible = (C) get(key);
+        return converter.convert(convertible);
+    }
+
+    /**
      *
      * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
      *
@@ -248,6 +270,102 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         C convertible = (C) get(key);
         if(convertible == null) return defaultObject;
         return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * @param key the key for the entry which should be of type {@link Number}
+     * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create a byte or throw
+     *                     an factory
+     * @return {@link Number#byteValue() byte value} of {@link Number} value at given key
+     * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
+     * @param <E> factory that may be thrown by your {@link ValueFactory}
+     * @throws E may be thrown by your {@link ValueFactory}
+     */
+    default <E extends Exception> byte getNumberAsByte(@NotNull K key, @NotNull ValueFactory<K, Byte, E> valueFactory) throws E {
+        Number number = (Number) get(key);
+        if(number == null) return valueFactory.create(key);
+        return number.byteValue();
+    }
+
+    /**
+     *
+     * @param key the key for the entry which should be of type {@link Number}
+     * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create a short or throw
+     *                     an factory
+     * @return {@link Number#shortValue() short value} of {@link Number} value at given key
+     * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
+     * @param <E> factory that may be thrown by your {@link ValueFactory}
+     * @throws E may be thrown by your {@link ValueFactory}
+     */
+    default <E extends Exception> short getNumberAsShort(@NotNull K key, @NotNull ValueFactory<K, Short, E> valueFactory) throws E {
+        Number number = (Number) get(key);
+        if(number == null) return valueFactory.create(key);
+        return number.shortValue();
+    }
+
+    /**
+     *
+     * @param key the key for the entry which should be of type {@link Number}
+     * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create an int or throw
+     *                     an factory
+     * @return {@link Number#intValue() int value} of {@link Number} value at given key
+     * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
+     * @param <E> factory that may be thrown by your {@link ValueFactory}
+     * @throws E may be thrown by your {@link ValueFactory}
+     */
+    default <E extends Exception> int getNumberAsInt(@NotNull K key, @NotNull ValueFactory<K, Integer, E> valueFactory) throws E {
+        Number number = (Number) get(key);
+        if(number == null) return valueFactory.create(key);
+        return number.intValue();
+    }
+
+    /**
+     *
+     * @param key the key for the entry which should be of type {@link Number}
+     * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create an int or throw
+     *                     an factory
+     * @return {@link Number#longValue() long value} of {@link Number} value at given key
+     * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
+     * @param <E> factory that may be thrown by your {@link ValueFactory}
+     * @throws E may be thrown by your {@link ValueFactory}
+     */
+    default <E extends Exception> long getNumberAsLong(@NotNull K key, @NotNull ValueFactory<K, Long, E> valueFactory) throws E {
+        Number number = (Number) get(key);
+        if(number == null) return valueFactory.create(key);
+        return number.longValue();
+    }
+
+    /**
+     *
+     * @param key the key for the entry which should be of type {@link Number}
+     * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create a float or throw
+     *                     an factory
+     * @return {@link Number#floatValue() float value} of {@link Number} value at given key
+     * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
+     * @param <E> factory that may be thrown by your {@link ValueFactory}
+     * @throws E may be thrown by your {@link ValueFactory}
+     */
+    default <E extends Exception> float getNumberAsFloat(@NotNull K key, @NotNull ValueFactory<K, Float, E> valueFactory) throws E {
+        Number number = (Number) get(key);
+        if(number == null) return valueFactory.create(key);
+        return number.floatValue();
+    }
+
+    /**
+     *
+     * @param key the key for the entry which should be of type {@link Number}
+     * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create a double or throw
+     *                     an factory
+     * @return {@link Number#doubleValue() double value} of {@link Number} value at given key
+     * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
+     * @param <E> factory that may be thrown by your {@link ValueFactory}
+     * @throws E may be thrown by your {@link ValueFactory}
+     */
+    default <E extends Exception> double getNumberAsDouble(@NotNull K key, @NotNull ValueFactory<K, Double, E> valueFactory) throws E {
+        Number number = (Number) get(key);
+        if(number == null) return valueFactory.create(key);
+        return number.doubleValue();
     }
 
     /**
@@ -397,7 +515,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @return {@code true} if an entry with given key exists, {@code false} otherwise
      */
     @SuppressWarnings("unchecked")
-    default  <C> boolean processIfContained(@NotNull String key, @NotNull Consumer<C> consumer){
+    default <C> boolean processIfContained(@NotNull String key, @NotNull Consumer<C> consumer){
         for(Entry<K, V> entry : this){
             if(entry.getKey().equals(key)){
                 consumer.accept((C) entry.getValue());
