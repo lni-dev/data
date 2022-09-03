@@ -80,6 +80,19 @@ import java.util.function.Supplier;
  *         any other values are not supported and will most likely cause a {@link ParseException}
  *     </li>
  * </ul>
+ <br>
+ * <a style="margin-bottom:0; padding-bottom:0; font-size:10px">when parsing json-string to {@link SOData SOData}:</a>
+ * <ul>
+ *     <li style="padding-top:0">
+ *         an empty json-string, for example "" or "   ", will be parsed to an empty {@link SOData}
+ *     </li>
+ *     <li>
+ *         an json-string that starts with a "[" (a json-array) will be parsed to an {@link SOData}.
+ *         The array will be accessible with the {@link #arrayWrapperKey}. see {@link #setArrayWrapperKey(String)}
+ *         and {@link #DEFAULT_ARRAY_WRAPPER_KEY}
+ *     </li>
+ *
+ * </ul>
  */
 public class JsonParser {
 
@@ -156,6 +169,7 @@ public class JsonParser {
     /**
      * parses the content of given stream to a {@link SOData}.<br>
      * The stream will be {@link InputStream#close() closed} after parsing finished.<br>
+     * If only an empty string is being read (for example "" or "   "), an empty {@link SOData} will be returned.<br>
      * @param stream the stream to read the json from
      * @return parsed {@link SOData}
      * @throws IOException while parsing
@@ -175,6 +189,7 @@ public class JsonParser {
      * parses the content of given reader to a {@link SOData}.<br>
      * The reader should not be wrapped in a {@link BufferedReader}, as this method does this.<br>
      * The reader will be {@link Reader#close() closed} after parsing finished.<br>
+     * If only an empty string is being read (for example "" or "   "), an empty {@link SOData} will be returned.<br>
      * @param reader the reader to read the json from
      * @return parsed {@link SOData}
      * @throws IOException while parsing
@@ -191,7 +206,12 @@ public class JsonParser {
     }
 
     /**
-     * parses a json-object or a json-array (will be wrapped with {@link #arrayWrapperKey}) to a {@link SOData}.
+     * <p>
+     *     parses a json-object or a json-array (will be wrapped with {@link #arrayWrapperKey}) to a {@link SOData}.
+     *     <br><br>
+     *     If only an empty string is being read (for example "" or "   ") and empty {@link SOData} will be returned.
+     * </p>
+     *
      * @param reader to read from
      * @return parsed {@link SOData}
      * @throws IOException while parsing
