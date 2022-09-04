@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package me.linusdev.data.converter;
+package me.linusdev.data.functions;
 
 /**
  *
- * @param <C> convertible to convert
- * @param <R> result type to convert to
+ * @param <E> Exception that can be thrown
+ * @param <V> value class
+ * @param <K> key class
  */
-public interface Converter<C, R> {
+public interface ValueFactory<K, V, E extends Exception> {
 
     /**
-     * converts from {@link C} to {@link R}
-     * @param convertible convertible to convert
-     * @return converted result
+     *
+     * @param key the key of the entry, the factory is for
+     * @return {@link V}
+     * @throws E factory {@link E}
      */
-    R convert(C convertible);
+    V create(K key) throws E;
+
 }

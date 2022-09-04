@@ -17,8 +17,10 @@
 package me.linusdev.data.so;
 
 import me.linusdev.data.AbstractData;
+import me.linusdev.data.DataWrapper;
 import me.linusdev.data.implemantations.SODataListImpl;
 import me.linusdev.data.implemantations.SODataMapImpl;
+import me.linusdev.data.implemantations.SODataWrapperImpl;
 import me.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -94,5 +96,15 @@ public interface SOData extends SAOData<Object> {
      */
     static @NotNull SOData newHashMapData(int initialCapacity) {
         return new SODataMapImpl(new HashMap<>(initialCapacity));
+    }
+
+    /**
+     *
+     * @param object object to wrap
+     * @return {@link SODataWrapper} wrapping given object
+     * @see DataWrapper
+     */
+    static @NotNull SODataWrapper wrap(Object object) {
+        return new SODataWrapperImpl(object);
     }
 }

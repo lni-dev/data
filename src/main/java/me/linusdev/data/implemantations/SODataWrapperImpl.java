@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package me.linusdev.data.factory;
+package me.linusdev.data.implemantations;
 
-/**
- *
- * @param <E> Exception that can be thrown
- * @param <V> value class
- * @param <K> key class
- */
-public interface ValueFactory<K, V, E extends Exception> {
+import me.linusdev.data.so.SODataWrapper;
 
-    /**
-     *
-     * @param key the key of the entry, the factory is for
-     * @return {@link V}
-     * @throws E factory {@link E}
-     */
-    V create(K key) throws E;
-
+public class SODataWrapperImpl extends SAODataWrapperImpl<Object> implements SODataWrapper {
+    public SODataWrapperImpl(Object obj) {
+        super(obj);
+    }
 }

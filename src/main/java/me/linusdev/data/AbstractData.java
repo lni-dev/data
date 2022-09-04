@@ -16,10 +16,10 @@
 
 package me.linusdev.data;
 
-import me.linusdev.data.converter.Converter;
-import me.linusdev.data.converter.ExceptionConverter;
+import me.linusdev.data.functions.Converter;
+import me.linusdev.data.functions.ExceptionConverter;
 import me.linusdev.data.entry.Entry;
-import me.linusdev.data.factory.ValueFactory;
+import me.linusdev.data.functions.ValueFactory;
 import me.linusdev.data.implemantations.SODataMapImpl;
 import me.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.ApiStatus;
@@ -200,7 +200,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param converter {@link Converter} to convert from {@link C} to {@link R}
      * @param <C> the convertible type
      * @param <R> the result type
-     * @return result {@link R} or {@code null} if your converter returns {@code null}
+     * @return result {@link R} or {@code null} if your functions returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
      */
     @SuppressWarnings("unchecked")
@@ -218,7 +218,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param defaultObject object to return if {@link #get(Object)} with given key is {@code null}
      * @param <C> the convertible type
      * @param <R> the result type
-     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your converter returns {@code null}
+     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your functions returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
      */
     @SuppressWarnings("unchecked")
@@ -240,7 +240,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param <C> the convertible type
      * @param <R> the result type
      * @param <E> the Exception thrown by your {@link ExceptionConverter}
-     * @return result {@link R} or {@code null} if your converter returns {@code null}
+     * @return result {@link R} or {@code null} if your functions returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
      * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
      */
@@ -261,7 +261,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param <C> the convertible type
      * @param <R> the result type
      * @param <E> the Exception thrown by your {@link ExceptionConverter}
-     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your converter returns {@code null}
+     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your functions returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
      * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
      */
@@ -426,7 +426,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
      * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
-     * @throws E if the converter throws this exception
+     * @throws E if the functions throws this exception
      */
     @SuppressWarnings("unchecked")
     default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
