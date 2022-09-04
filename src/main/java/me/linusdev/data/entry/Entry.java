@@ -17,7 +17,7 @@
 package me.linusdev.data.entry;
 
 import me.linusdev.data.AbstractData;
-import me.linusdev.data.implemantations.DataMapImpl;
+import me.linusdev.data.implemantations.SODataMapImpl;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
@@ -26,7 +26,7 @@ import java.util.function.Function;
 /**
  * A {@link Entry} represents a key-value pair in a {@link AbstractData}.
  * Every {@link Entry} may only be contained in one {@link AbstractData} at a time
- * (This is especially true for {@link DataMapImpl}).
+ * (This is especially true for {@link SODataMapImpl}).
  * @param <K> key
  * @param <V> value
  */

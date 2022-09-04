@@ -17,8 +17,8 @@
 package me.linusdev.data.so;
 
 import me.linusdev.data.AbstractData;
-import me.linusdev.data.implemantations.DataListImpl;
-import me.linusdev.data.implemantations.DataMapImpl;
+import me.linusdev.data.implemantations.SODataListImpl;
+import me.linusdev.data.implemantations.SODataMapImpl;
 import me.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +35,8 @@ import java.util.LinkedList;
  * <br><br>
  * There are different {@link SOData} implementations:
  * <ul>
- *     <li>{@link DataListImpl}</li>
- *     <li>{@link DataMapImpl}</li>
+ *     <li>{@link SODataListImpl}</li>
+ *     <li>{@link SODataMapImpl}</li>
  * </ul>
  * <br>
  * The static methods of this interface should be used to create new {@link SOData} instances:
@@ -47,7 +47,7 @@ import java.util.LinkedList;
  * </ul>
  *
  */
-public interface SOData extends AbstractData<String, Object> {
+public interface SOData extends SAOData<Object> {
 
     /**
      * <p>
@@ -65,13 +65,13 @@ public interface SOData extends AbstractData<String, Object> {
      */
     @Contract(pure = true)
     static @NotNull SOData newOrderedDataWithKnownSize(int initialCapacity) {
-        return new DataListImpl(new ArrayList<>(initialCapacity));
+        return new SODataListImpl(new ArrayList<>(initialCapacity));
     }
 
     /**
      * <p>
      *     This will create a new {@link SOData} which will keep the order the elements are added.
-     *     This {@link DataListImpl} will be backed by a backed by a {@link LinkedList}.<br>
+     *     This {@link SODataListImpl} will be backed by a backed by a {@link LinkedList}.<br>
      *     This is useful for {@link AbstractData data objects} with Unknown sizes.
      * </p>
      * <p>
@@ -84,7 +84,7 @@ public interface SOData extends AbstractData<String, Object> {
      */
     @Contract(pure = true)
     static @NotNull SOData newOrderedDataWithUnknownSize() {
-        return new DataListImpl(new LinkedList<>());
+        return new SODataListImpl(new LinkedList<>());
     }
 
     /**
@@ -93,6 +93,6 @@ public interface SOData extends AbstractData<String, Object> {
      * @return {@link SOData} backed by a {@link HashMap}
      */
     static @NotNull SOData newHashMapData(int initialCapacity) {
-        return new DataMapImpl(new HashMap<>(initialCapacity));
+        return new SODataMapImpl(new HashMap<>(initialCapacity));
     }
 }

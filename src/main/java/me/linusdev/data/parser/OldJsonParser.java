@@ -18,8 +18,8 @@ package me.linusdev.data.parser;
 
 import me.linusdev.data.*;
 import me.linusdev.data.entry.Entry;
-import me.linusdev.data.so.SOEntryImpl;
-import me.linusdev.data.implemantations.DataListImpl;
+import me.linusdev.data.implemantations.SODataListImpl;
+import me.linusdev.data.so.SAOEntryImpl;
 import me.linusdev.data.parser.exceptions.ParseException;
 import me.linusdev.data.parser.exceptions.ParseValueException;
 import me.linusdev.data.parser.exceptions.UnexpectedCharacterException;
@@ -114,8 +114,8 @@ public class OldJsonParser {
 
     }
 
-    public DataListImpl readDataFroResourceFile(String resource) throws IOException, ParseException, NullPointerException {
-        DataListImpl data;
+    public SODataListImpl readDataFromResourceFile(String resource) throws IOException, ParseException, NullPointerException {
+        SODataListImpl data;
         try {
             InputStream in = OldJsonParser.class.getClassLoader().getResourceAsStream(resource);
             if (in == null) return null;
@@ -129,8 +129,8 @@ public class OldJsonParser {
         return data;
     }
 
-    public DataListImpl readDataFromFile(Path filePath) throws IOException, ParseException {
-        DataListImpl data;
+    public SODataListImpl readDataFromFile(Path filePath) throws IOException, ParseException {
+        SODataListImpl data;
         try {
             reader = Files.newBufferedReader(filePath);
             tracker = new ParseTracker();
@@ -150,10 +150,10 @@ public class OldJsonParser {
      *     This cannot read pure json arrays (if the json starts with '[' instead of '{')
      * </p>
      * @param reader {@link Reader} to read from
-     * @return {@link DataListImpl}
+     * @return {@link SODataListImpl}
      * @see #readDataFromReader(Reader, boolean, String) 
      */
-    public DataListImpl readDataFromReader(Reader reader) throws ParseException, IOException {
+    public SODataListImpl readDataFromReader(Reader reader) throws ParseException, IOException {
         return readDataFromReader(reader, false, null);
     }
 
@@ -162,22 +162,22 @@ public class OldJsonParser {
      *     This will close the reader once finished reading or if an exception has been thrown
      * </p>
      * @param reader {@link Reader} to read from
-     * @param autoArray if the json starts with an array ("[...]"), it will parse this into a {@link DataListImpl}
-     * @param arrayKey the key, which the array should have in the created {@link DataListImpl}
-     * @return {@link DataListImpl}
+     * @param autoArray if the json starts with an array ("[...]"), it will parse this into a {@link SODataListImpl}
+     * @param arrayKey the key, which the array should have in the created {@link SODataListImpl}
+     * @return {@link SODataListImpl}
      */
-    public DataListImpl readDataFromReader(Reader reader, boolean autoArray, @Nullable String arrayKey) throws ParseException, IOException {
-        DataListImpl data;
+    public SODataListImpl readDataFromReader(Reader reader, boolean autoArray, @Nullable String arrayKey) throws ParseException, IOException {
+        SODataListImpl data;
         try {
             this.reader = reader;
             tracker = new ParseTracker();
             char c = nextFromStream(true);
 
             if (c == '[' && autoArray) {
-                data = new DataListImpl(new LinkedList<>());
-                SOEntryImpl entry = new SOEntryImpl(arrayKey);
+                data = new SODataListImpl(new LinkedList<>());
+                SAOEntryImpl entry = new SAOEntryImpl(arrayKey);
                 c = readArrayFromReader(reader, c, entry);
-                data.addEntry(entry); // we can use this here, since we created the DataListImpl right before
+                data.addEntry(entry); // we can use this here, since we created the SODataListImpl right before
             } else {
                 data = readDataFromStream(c);
             }
@@ -238,7 +238,7 @@ public class OldJsonParser {
     public void writeData(AbstractData<?, ?> data, Writer writer) throws IOException {
         this.writer = writer;
         offset = new SpaceOffsetTracker(offsetString);
-        if (data == null) data = new DataListImpl(new ArrayList<>(0));
+        if (data == null) data = new SODataListImpl(new ArrayList<>(0));
         writeJson(data);
     }
 
@@ -276,16 +276,16 @@ public class OldJsonParser {
     }
 
 
-    private DataListImpl readDataFromStream(char c) throws IOException, ParseException {
-        DataListImpl data = new DataListImpl(new LinkedList<>());
+    private SODataListImpl readDataFromStream(char c) throws IOException, ParseException {
+        SODataListImpl data = new SODataListImpl(new LinkedList<>());
 
         if ((c) != '{') throw new UnexpectedCharacterException(c, tracker);
-        if((c = nextFromStream(true)) == '}') return data; // Empty DataListImpl
+        if((c = nextFromStream(true)) == '}') return data; // Empty SODataListImpl
 
         while (true) {
             if ((c) != '"') throw new UnexpectedCharacterException(c, tracker);
 
-            SOEntryImpl e = new SOEntryImpl(readKeyFromStream());
+            SAOEntryImpl e = new SAOEntryImpl(readKeyFromStream());
             if ((c = nextFromStream(false)) != ':') throw new UnexpectedCharacterException(c, tracker);
             c = readValueFromStream(nextFromStream(true), e);
             data.addEntry(e);
@@ -305,7 +305,7 @@ public class OldJsonParser {
      * <p>
      * The value might be
      * {@link String}
-     * {@link DataListImpl}
+     * {@link SODataListImpl}
      * {@link ArrayList} (Arrays are always returned as ArrayLists)
      * {@link Number}
      *
@@ -324,7 +324,7 @@ public class OldJsonParser {
      * <p>
      * The value might be: <br>
      * {@link String}<br>
-     * {@link DataListImpl}<br>
+     * {@link SODataListImpl}<br>
      * {@link ArrayList<Object>}&lt;Object&gt; (Arrays are always returned as ArrayLists) <br>
      * {@link Number}<br>
      *
@@ -604,7 +604,7 @@ public class OldJsonParser {
 
 
     /**
-     * Creates a beautiful json string of a {@link DataListImpl}
+     * Creates a beautiful json string of a {@link SODataListImpl}
      *
      * @param data
      * @return the json of a data as StringBuilder
@@ -766,7 +766,7 @@ public class OldJsonParser {
      * @return the json of a data as StringBuilder
      */
     private void writeJson(@Nullable AbstractData<?, ?> data) throws IOException {
-        if (data == null) data = new DataListImpl(new ArrayList<>(0));
+        if (data == null) data = new SODataListImpl(new ArrayList<>(0));
         writer.append('{');
         offset.add();
 

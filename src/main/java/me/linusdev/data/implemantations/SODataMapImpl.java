@@ -19,18 +19,18 @@ package me.linusdev.data.implemantations;
 import me.linusdev.data.entry.Entry;
 import me.linusdev.data.entry.MapEntryImpl;
 import me.linusdev.data.so.SOData;
-import me.linusdev.data.so.SOEntryImpl;
+import me.linusdev.data.so.SAOEntryImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.Map;
 
-public class DataMapImpl implements SOData {
+public class SODataMapImpl implements SOData {
 
     protected final Map<String, Object> entries;
 
-    public DataMapImpl(Map<String, Object> map) {
+    public SODataMapImpl(Map<String, Object> map) {
         this.entries = map;
     }
 
@@ -52,7 +52,7 @@ public class DataMapImpl implements SOData {
 
     @Override
     public @Nullable Entry<String, Object> remove(@NotNull String key) {
-        return new SOEntryImpl(key, entries.remove(key));
+        return new SAOEntryImpl(key, entries.remove(key));
     }
 
     @Override

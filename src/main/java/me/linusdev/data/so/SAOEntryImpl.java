@@ -23,36 +23,36 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class SOEntryImpl implements Entry<String, Object> {
+public class SAOEntryImpl<O> implements Entry<String, O> {
 
     private final @NotNull String key;
-    private @Nullable Object value;
+    private @Nullable O value;
 
-    private @Nullable Function<Entry<String, Object>, Object> getter = null;
-    private @Nullable BiConsumer<Entry<String, Object>, Object> setter = null;
+    private @Nullable Function<Entry<String, O>, O> getter = null;
+    private @Nullable BiConsumer<Entry<String, O>, O> setter = null;
 
-    private SOEntryImpl(){
+    private SAOEntryImpl(){
         this.key = "";
     }
 
-    public SOEntryImpl(@NotNull String key, @Nullable Object value){
+    public SAOEntryImpl(@NotNull String key, @Nullable O value){
         this.key = key;
         this.value = value;
     }
 
-    public SOEntryImpl(@NotNull String key){
+    public SAOEntryImpl(@NotNull String key){
         this.key = key;
         this.value = null;
     }
 
     @Override
-    public @Nullable Object getValue() {
+    public @Nullable O getValue() {
         if(getter != null) return getter.apply(this);
         return value;
     }
 
     @Override
-    public void setValue(@Nullable Object value) {
+    public void setValue(@Nullable O value) {
         if(setter != null){
             setter.accept(this, value);
             return;
@@ -61,13 +61,13 @@ public class SOEntryImpl implements Entry<String, Object> {
     }
 
     @Override
-    public void overwriteGetValue(@Nullable Function<Entry<String, Object>, Object> getter) {
+    public void overwriteGetValue(@Nullable Function<Entry<String, O>, O> getter) {
         if(this.getter != null) throw new UnsupportedOperationException("This entry can only be contained in a single data.");
         this.getter = getter;
     }
 
     @Override
-    public void overwriteSetValue(@Nullable BiConsumer<Entry<String, Object>, Object> setter) {
+    public void overwriteSetValue(@Nullable BiConsumer<Entry<String, O>, O> setter) {
         if(this.setter != null) throw new UnsupportedOperationException("This entry can only be contained in a single data.");
         this.setter = setter;
     }

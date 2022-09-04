@@ -17,19 +17,19 @@
 package me.linusdev.data.implemantations;
 
 import me.linusdev.data.entry.Entry;
-import me.linusdev.data.so.SOData;
-import me.linusdev.data.so.SOEntryImpl;
+import me.linusdev.data.so.SAOData;
+import me.linusdev.data.so.SAOEntryImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.List;
 
 
-public class DataListImpl implements SOData {
+public class SAODataListImpl<O> implements SAOData<O> {
 
-    protected @NotNull List<Entry<String, Object>> entries;
+    protected @NotNull List<Entry<String, O>> entries;
 
-    public DataListImpl(@NotNull List<Entry<String, Object>> list){
+    public SAODataListImpl(@NotNull List<Entry<String, O>> list){
         entries = list;
     }
 
@@ -39,26 +39,26 @@ public class DataListImpl implements SOData {
      * @param value value
      */
     @Override
-    public boolean add(@NotNull String key, Object value){
-        return entries.add(new SOEntryImpl(key, value));
+    public boolean add(@NotNull String key, O value){
+        return entries.add(new SAOEntryImpl<>(key, value));
     }
 
     @Override
-    public void addEntry(@NotNull Entry<String, Object> entry){
+    public void addEntry(@NotNull Entry<String, O> entry){
         entries.add(entry);
     }
 
     @Override
-    public SOEntryImpl getEntry(@NotNull String key){
-        for(Entry<String, Object> entry : entries){
-            if(entry.getKey().equals(key)) return (SOEntryImpl) entry;
+    public Entry<String, O> getEntry(@NotNull String key){
+        for(Entry<String, O> entry : entries){
+            if(entry.getKey().equals(key)) return entry;
         }
 
         return null;
     }
 
     @Override
-    public Entry<String, Object> remove(@NotNull String key){
+    public Entry<String, O> remove(@NotNull String key){
         for(int i = 0; i < entries.size(); i++){
             if(entries.get(i).getKey().equals(key)) return entries.remove(i);
         }
@@ -77,7 +77,7 @@ public class DataListImpl implements SOData {
     }
 
     @Override
-    public Iterator<Entry<String, Object>> iterator() {
+    public Iterator<Entry<String, O>> iterator() {
         return entries.iterator();
     }
 }

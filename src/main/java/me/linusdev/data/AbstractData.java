@@ -20,8 +20,9 @@ import me.linusdev.data.converter.Converter;
 import me.linusdev.data.converter.ExceptionConverter;
 import me.linusdev.data.entry.Entry;
 import me.linusdev.data.factory.ValueFactory;
-import me.linusdev.data.implemantations.DataMapImpl;
+import me.linusdev.data.implemantations.SODataMapImpl;
 import me.linusdev.data.parser.JsonParser;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +47,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * <p>
      * This method might not check, if a {@link Entry} with given key already exits.
      * Depending on the implementation, this might even override existing mappings
-     * (for Example {@link DataMapImpl DataMapImpl}).
+     * (for Example {@link SODataMapImpl SODataMapImpl}).
      * </p>
      *
      * @param key key
@@ -60,7 +61,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * <p>
      * This method might not check, if a {@link Entry} with given key already exits.
      * Depending on the implementation, this might even override existing mappings
-     * (for Example {@link DataMapImpl DataMapImpl}).
+     * (for Example {@link SODataMapImpl SODataMapImpl}).
      * </p>
      *
      * @param key key
@@ -545,6 +546,15 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      */
     default @NotNull StringBuilder toJsonString() {
         return PARSER.writeDataToStringBuilder(this);
+    }
+
+    /**
+     * How this {@link AbstractData} should be parsed
+     * @return {@link ParseType}
+     */
+    @ApiStatus.Internal
+    default @NotNull ParseType getParseType() {
+        return ParseType.NORMAL;
     }
 
     @Override

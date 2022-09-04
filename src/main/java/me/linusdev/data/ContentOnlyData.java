@@ -14,35 +14,13 @@
  * limitations under the License.
  */
 
-package me.linusdev.data.entry;
+package me.linusdev.data;
 
-import me.linusdev.data.so.SAOEntryImpl;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
-public class MapEntryImpl extends SAOEntryImpl {
-
-    private @NotNull Map<String, Object> associatedMap;
-
-    public MapEntryImpl(@NotNull Map<String, Object> associatedMap, String key) {
-        super(key, null);
-        this.associatedMap = associatedMap;
-    }
-
+public interface ContentOnlyData<K, V> extends AbstractData<K, V> {
     @Override
-    public Object getValue() {
-        return associatedMap.get(getKey());
-    }
-
-    @Override
-    public void setValue(Object value) {
-        super.setValue(value);
-        associatedMap.put(getKey(), value);
-    }
-
-    @Override
-    public @NotNull String getKey() {
-        return super.getKey();
+    @NotNull default ParseType getParseType() {
+        return ParseType.CONTENT_ONLY;
     }
 }

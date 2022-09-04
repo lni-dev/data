@@ -18,14 +18,14 @@ package me.linusdev.data.parser;
 
 import me.linusdev.data.AbstractData;
 import me.linusdev.data.Datable;
+import me.linusdev.data.ParseType;
 import me.linusdev.data.SimpleDatable;
 import me.linusdev.data.entry.Entry;
-import me.linusdev.data.implemantations.DataListImpl;
 import me.linusdev.data.parser.exceptions.ParseException;
 import me.linusdev.data.parser.exceptions.UnexpectedCharacterException;
 import me.linusdev.data.parser.exceptions.UnexpectedEndException;
+import me.linusdev.data.so.SAOEntryImpl;
 import me.linusdev.data.so.SOData;
-import me.linusdev.data.so.SOEntryImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -227,7 +227,7 @@ public class JsonParser {
 
         } else if (i == SQUARE_BRACKET_OPEN_CHAR) {
             SOData data = dataSupplier.get();
-            SOEntryImpl entry = new SOEntryImpl(arrayWrapperKey);
+            SAOEntryImpl<Object> entry = new SAOEntryImpl<>(arrayWrapperKey);
             entry.setValue(parseJsonArray(reader, tracker));
             data.addEntry(entry);
             return data;
@@ -256,7 +256,7 @@ public class JsonParser {
             //inside the json-object, we first expect a key...
             if(i != QUOTE_CHAR) throw new UnexpectedCharacterException((char) i, tracker);
 
-            SOEntryImpl entry = new SOEntryImpl(reader.readString(allowNewLineInStrings, tracker));
+            SAOEntryImpl<Object> entry = new SAOEntryImpl<>(reader.readString(allowNewLineInStrings, tracker));
 
             //now we expect a colon (':')
             i = reader.read(tracker);
@@ -388,25 +388,40 @@ public class JsonParser {
     }
 
     private void writeJson(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @Nullable AbstractData<?, ?> data) throws IOException {
-        if (data == null) data = new DataListImpl(new ArrayList<>(0));
-        writer.append('{');
-        offset.add();
+        if (data == null) data = dataSupplier.get();
+        if(data.getParseType() == ParseType.NORMAL) {
+            writer.append('{');
+            offset.add();
 
-        boolean first = true;
-        for (Entry<?, ?> entry : data) {
-            if (!first) writer.append(',');
-            else first = false;
+            boolean first = true;
+            for (Entry<?, ?> entry : data) {
+                if (!first) writer.append(',');
+                else first = false;
 
-            writer.append('\n').append(offset.toString());
-            writer.append('"').append(Objects.toString(entry.getKey())).append("\": ");
+                writer.append('\n').append(offset.toString());
+                writer.append('"').append(Objects.toString(entry.getKey())).append("\": ");
 
-            writeJsonValue(writer, offset, entry.getValue());
+                writeJsonValue(writer, offset, entry.getValue());
+
+            }
+
+            writer.append('\n');
+            offset.remove();
+            writer.append(offset.toString()).append('}');
+
+        } else if (data.getParseType() == ParseType.CONTENT_ONLY){
+
+            boolean first = true;
+            for (Entry<?, ?> entry : data) {
+                if (!first) writer.append(", ");
+                else first = false;
+
+                writer.append(offset.toString());
+                writeJsonValue(writer, offset, entry.getValue());
+
+            }
 
         }
-
-        writer.append('\n');
-        offset.remove();
-        writer.append(offset.toString()).append('}');
     }
 
     private void writeJsonValue(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @Nullable Object value) throws IOException {
