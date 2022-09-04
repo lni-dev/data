@@ -36,3 +36,16 @@ data.add("something else", new String[]{"1", "a", "2"});
 //parse it to a json string
 System.out.println(data.toJsonString());
 ```
+
+The output will look like that:
+```json
+{
+	"key": "value",
+	"a int": 10,
+	"something else": [
+		"1",
+		"a",
+		"2"
+	]
+}
+```
