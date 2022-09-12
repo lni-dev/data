@@ -18,7 +18,7 @@ Replace `[version]` with the version you want to use.
 
 ## Getting Started
 A data can be converted to a json string and vice verca.
-### data to json
+### SOData to Json
 First create a data using the static methods of `SOData`. `SOData.newOrderedDataWithKnownSize(10)` will create a new
 data, which is backed by an `ArrayList` with the initial capacity 10. It is possible to add more than 10 entries.
 <br><br>
@@ -52,7 +52,7 @@ The output will look like that:
 }
 ```
 
-### json to data
+### Json to SOData
 To parse a json string to a data you need to get a instance of a `JsonParser`:
 ```java
 JsonParser parser = new JsonParser();
