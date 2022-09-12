@@ -17,6 +17,8 @@ dependencies {
 Replace `[version]` with the version you want to use.
 
 ## Getting Started
+A data can be converted to a json string and vice verca.
+### data to json
 First create a data using the static methods of `SOData`. `SOData.newOrderedDataWithKnownSize(10)` will create a new
 data, which is backed by an `ArrayList` with the initial capacity 10. It is possible to add more than 10 entries.
 <br><br>
@@ -48,4 +50,41 @@ The output will look like that:
 		"2"
 	]
 }
+```
+
+### json to data
+To parse a json string to a data you need to get a instance of a `JsonParser`:
+```java
+JsonParser parser = new JsonParser();
+```
+With this parser you can parse a `Reader` or an `Inputstream`:
+```java
+SOData dataFromReader = parser.parseReader(reader);
+SOData dataFromStream = parser.parseStream(inputStream);
+```
+Here is an example of parsing a `String` to a `SOData`:
+```java
+String json = "{...}";
+Reader reader = new StringReader(json);
+        
+JsonParser parser = new JsonParser();
+SOData data = parser.parseReader(reader);
+```
+If you want to parse a json array to a data you can use the function `setArrayWrapperKey(String key)`. After parsing the
+array will then be accessible with the given key as a `List<Object>`:
+```java
+String json = "[1,2,3]";
+Reader reader = new StringReader(json);
+
+JsonParser parser = new JsonParser();
+parser.setArrayWrapperKey("array");
+
+SOData data = parser.parseReader(reader);
+List<Object> list = data.getList("array");
+
+System.out.println(list);
+```
+The above code will give the following output:
+```js
+[1,2,3]
 ```
