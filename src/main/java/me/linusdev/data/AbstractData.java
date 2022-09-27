@@ -38,6 +38,7 @@ import java.util.function.Consumer;
  * @param <K> key
  * @param <V> value
  */
+@SuppressWarnings("unused")
 public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
 
     public static final JsonParser PARSER = new JsonParser();
@@ -268,7 +269,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your functions returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
      * @see #getAndConvertOrDefault(Object, Converter, Object, Object) 
-     * @see #getAndConvertOrDefaultBoth(Object, Converter, Object) 
+     * @see #getAndConvertOrDefaultBoth(Object, Converter, Object)
      */
     @SuppressWarnings("unchecked")
     @Nullable
@@ -364,7 +365,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *
      * @param key the key for the entry which should be of type {@link Number}
      * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create a byte or throw
-     *                     an factory
+     *                     a factory
      * @return {@link Number#byteValue() byte value} of {@link Number} value at given key
      * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
      * @param <E> factory that may be thrown by your {@link ValueFactory}
@@ -380,7 +381,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *
      * @param key the key for the entry which should be of type {@link Number}
      * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create a short or throw
-     *                     an factory
+     *                     a factory
      * @return {@link Number#shortValue() short value} of {@link Number} value at given key
      * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
      * @param <E> factory that may be thrown by your {@link ValueFactory}
@@ -396,7 +397,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *
      * @param key the key for the entry which should be of type {@link Number}
      * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create an int or throw
-     *                     an factory
+     *                     a factory
      * @return {@link Number#intValue() int value} of {@link Number} value at given key
      * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
      * @param <E> factory that may be thrown by your {@link ValueFactory}
@@ -412,7 +413,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *
      * @param key the key for the entry which should be of type {@link Number}
      * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create an int or throw
-     *                     an factory
+     *                     a factory
      * @return {@link Number#longValue() long value} of {@link Number} value at given key
      * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
      * @param <E> factory that may be thrown by your {@link ValueFactory}
@@ -428,7 +429,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *
      * @param key the key for the entry which should be of type {@link Number}
      * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create a float or throw
-     *                     an factory
+     *                     a factory
      * @return {@link Number#floatValue() float value} of {@link Number} value at given key
      * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
      * @param <E> factory that may be thrown by your {@link ValueFactory}
@@ -444,7 +445,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *
      * @param key the key for the entry which should be of type {@link Number}
      * @param valueFactory if {@link #get(Object)} returns {@code null}, this factory is used to create a double or throw
-     *                     an factory
+     *                     a factory
      * @return {@link Number#doubleValue() double value} of {@link Number} value at given key
      * or created value by your valueFactory if {@link #get(Object)} returned {@code null}.
      * @param <E> factory that may be thrown by your {@link ValueFactory}
@@ -531,7 +532,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     /**
      * <p>
      *     Each element from the implementations - returned by {@link #getList(Object)} with given key - will be set to {@code null},
-     *     after it has been converted and stored in the implementations that will be returned. After every element of the former implemantations has been converted,
+     *     after it has been converted and stored in the implementations that will be returned. After every element of the former implementations has been converted,
      *     {@link List#clear()} will be called.
      * </p>
      *
@@ -561,7 +562,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     /**
      * <p>
      *     Each element from the implementations - returned by {@link #getList(Object)} with given key - will be set to {@code null},
-     *     after it has been converted and stored in the implementations that will be returned. After every element of the former implemantations has been converted,
+     *     after it has been converted and stored in the implementations that will be returned. After every element of the former implementations has been converted,
      *     {@link List#clear()} will be called.
      * </p>
      *
