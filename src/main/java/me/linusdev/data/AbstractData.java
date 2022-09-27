@@ -193,6 +193,53 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
 
     /**
      *
+     * @param key {@link K key}
+     * @param defaultObject default object to return if no entry with given key exists
+     * @param defaultObjectIfNull default object to return if the value of the entry with given key is {@code null}
+     * @return value (cast to {@link C}) of entry with given key or {@code null} if the value of given key is {@code null} or given defaultObject is {@code null} and
+     * there is no entry for given key.
+     * @param <C> class to which the value of the entry should be cast to
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
+     */
+    @Contract("_, !null, !null -> !null")
+    @SuppressWarnings("unchecked")
+    default <C extends V> @Nullable C getAs(@NotNull K key, @Nullable C defaultObject, @Nullable C defaultObjectIfNull) {
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return defaultObject;
+        V value = entry.getValue();
+        return value == null ? defaultObjectIfNull : (C) value;
+    }
+
+    /**
+     *
+     * @param key {@link K key}
+     * @param defaultObject default object to return if no entry with given key exists
+     * @return value (cast to {@link C}) of entry with given key or {@code null} if the value of given key is {@code null} or given defaultObject is {@code null} and
+     * there is no entry for given key.
+     * @param <C> class to which the value of the entry should be cast to
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
+     */
+    @SuppressWarnings("unchecked")
+    default <C extends V> @Nullable C getAs(@NotNull K key, @Nullable C defaultObject) {
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return defaultObject;
+        return (C) entry.getValue();
+    }
+
+    /**
+     *
+     * @param key {@link K key}
+     * @return value (cast to {@link C}) of entry with given key or {@code null} if the value of the entry is {@code null} or if no such entry exits
+     * @param <C> class to which the value of the entry should be cast to
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
+     * @see #getAs(Object, Object)
+     */
+    default <C extends V> @Nullable C getAs(@NotNull K key) {
+        return getAs(key, null);
+    }
+
+    /**
+     *
      * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
      * If the value returned by {@link #get(Object)} with given key is {@code null}, {@link Converter#convert(Object)} with {@code null} is called!
      *
@@ -215,11 +262,13 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *
      * @param key the key for the entry of type {@link C}
      * @param converter {@link Converter} to convert from {@link C} to {@link R}
-     * @param defaultObject object to return if {@link #get(Object)} with given key is {@code null}
+     * @param defaultObject object to return if {@link #get(Object)} with given key is {@code null}. (if entry or value is {@code null})
      * @param <C> the convertible type
      * @param <R> the result type
      * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your functions returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
+     * @see #getAndConvertOrDefault(Object, Converter, Object, Object) 
+     * @see #getAndConvertOrDefaultBoth(Object, Converter, Object) 
      */
     @SuppressWarnings("unchecked")
     @Nullable
@@ -228,6 +277,44 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         C convertible = (C) get(key);
         if(convertible == null) return defaultObject;
         return converter.convert(convertible);
+    }
+
+    /**
+     *
+     * @param key {@link K key}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}#
+     * @param defaultObject default object to return if no entry with given key exists
+     * @param defaultObjectIfNull default object to return if the value of the entry with given key is {@code null}
+     * @return result {@link R} or {@code null} if the value of the entry is {@code null} or if no entry with given key exists and your default object is {@code null}
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
+     */
+    @SuppressWarnings("unchecked")
+    @Contract("_, _, !null, !null -> !null")
+    @Nullable
+    default <C extends V, R> R getAndConvertOrDefault(@NotNull K key, @NotNull Converter<C, R> converter, @Nullable R defaultObject, @Nullable R defaultObjectIfNull){
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return defaultObject;
+        return entry.getValue() == null ? defaultObjectIfNull : converter.convert((C) entry.getValue());
+    }
+
+    /**
+     *
+     * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
+     *
+     * @param key the key for the entry of type {@link C}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param defaultObject object to return if {@link #get(Object)} with given key is {@code null}. (if entry or value is {@code null})
+     * @param <C> the convertible type
+     * @param <R> the result type
+     * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your functions returns {@code null}
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
+     */
+    @Nullable
+    @Contract("_, _, !null -> !null")
+    default <C extends V, R> R getAndConvertOrDefaultBoth(@NotNull K key, @NotNull Converter<C, R> converter, @Nullable R defaultObject){
+        return getAndConvert(key, converter, defaultObject);
     }
 
     /**
@@ -405,7 +492,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      */
     @SuppressWarnings("unchecked")
-    default <C, R> @Nullable ArrayList<R> getListAndConvert(@NotNull K key, @NotNull Converter<C, R> converter) {
+    default <C extends V, R> @Nullable ArrayList<R> getListAndConvert(@NotNull K key, @NotNull Converter<C, R> converter) {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -429,7 +516,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws E if the functions throws this exception
      */
     @SuppressWarnings("unchecked")
-    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C extends V, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -457,7 +544,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      */
     @SuppressWarnings("unchecked")
-    default <C, R> @Nullable ArrayList<R> getListAndConvertAndFreeMemory(@NotNull K key, @NotNull Converter<C, R> converter) {
+    default <C extends V, R> @Nullable ArrayList<R> getListAndConvertAndFreeMemory(@NotNull K key, @NotNull Converter<C, R> converter) {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -485,10 +572,10 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
      * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
-     * @throws E {@link ExceptionConverter#convert(Object)}
+     * @throws E if given converter throws an exception ({@link ExceptionConverter#convert(Object)})
      */
     @SuppressWarnings("unchecked")
-    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithExceptionAndFreeMemory(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C extends V, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithExceptionAndFreeMemory(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -513,17 +600,34 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param key the key for the entry
      * @param consumer consumer to process the entry, if it exists
      * @param <C> type to cast to
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
      * @return {@code true} if an entry with given key exists, {@code false} otherwise
      */
     @SuppressWarnings("unchecked")
-    default <C> boolean processIfContained(@NotNull String key, @NotNull Consumer<C> consumer){
-        for(Entry<K, V> entry : this){
-            if(entry.getKey().equals(key)){
-                consumer.accept((C) entry.getValue());
-                return true;
-            }
+    default <C extends V> boolean processIfContained(@NotNull K key, @NotNull Consumer<C> consumer){
+        Entry<K, V> entry = getEntry(key);
+        if(entry != null){
+            consumer.accept((C) entry.getValue());
+            return true;
         }
+        return false;
+    }
 
+    /**
+     *
+     * @param key the key for the entry
+     * @param consumer consumer to process the entry, if it exists, and it's value is not {@code null}.
+     * @return {@code true} if an entry with given key exists, and it's value is not {@code null}. {@code false} otherwise
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
+     * @param <C> type to cast to
+     */
+    @SuppressWarnings("unchecked")
+    default <C extends V> boolean processIfNotNull(@NotNull K key, @NotNull Consumer<C> consumer) {
+        Entry<K, V> entry = getEntry(key);
+        if(entry != null && entry.getValue() != null){
+            consumer.accept((C) entry.getValue());
+            return true;
+        }
         return false;
     }
 
