@@ -126,6 +126,54 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
 
     /**
      *
+     * @param key {@link K key}
+     * @return {@link OptionalValue}
+     * @param <C> type tp cast to
+     * @throws ClassCastException if the value for given key is not of type {@link C}.
+     */
+    @SuppressWarnings("unchecked")
+    default <C> @NotNull  OptionalValue<C> getOptionalValue(@NotNull K key) {
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return OptionalValue.of();
+        return OptionalValue.of((C) entry.getValue());
+    }
+
+    /**
+     *
+     * @param key {@link K key}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}.
+     * @return {@link OptionalValue}
+     * @param <C> type tp cast to
+     * @param <R> type your converter converts to
+     * @throws ClassCastException if the value for given key is not of type {@link C}.
+     */
+    @SuppressWarnings("unchecked")
+    default <C, R> @NotNull OptionalValue<R> getOptionalValue(@NotNull K key, @NotNull Converter<C, R> converter) {
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return OptionalValue.of();
+        return OptionalValue.of(converter.convert((C) entry.getValue()));
+    }
+
+    /**
+     *
+     * @param key {@link K key}
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}.
+     * @return {@link OptionalValue}
+     * @param <C> type tp cast to
+     * @param <R> type your converter converts to
+     * @param <E> {@link Exception} your converter may throw
+     * @throws E by your converter
+     * @throws ClassCastException if the value for given key is not of type {@link C}.
+     */
+    @SuppressWarnings("unchecked")
+    default <C, R, E extends Exception> @NotNull OptionalValue<R> getOptionalValue(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return OptionalValue.of();
+        return OptionalValue.of(converter.convert((C) entry.getValue()));
+    }
+
+    /**
+     *
      * Gets {@link V value} for given key or
      * <ul>
      *      <li>defaultObject, if no {@link Entry} for given key exists</li>
