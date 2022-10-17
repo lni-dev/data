@@ -148,7 +148,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws ClassCastException if the value for given key is not of type {@link C}.
      */
     @SuppressWarnings("unchecked")
-    default <C, R> @NotNull OptionalValue<R> getOptionalValue(@NotNull K key, @NotNull Converter<C, R> converter) {
+    default <C, R> @NotNull OptionalValue<R> getOptionalValueAndConvert(@NotNull K key, @NotNull Converter<C, R> converter) {
         Entry<K, V> entry = getEntry(key);
         if(entry == null) return OptionalValue.of();
         return OptionalValue.of(converter.convert((C) entry.getValue()));
@@ -166,7 +166,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws ClassCastException if the value for given key is not of type {@link C}.
      */
     @SuppressWarnings("unchecked")
-    default <C, R, E extends Exception> @NotNull OptionalValue<R> getOptionalValue(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C, R, E extends Exception> @NotNull OptionalValue<R> getOptionalValueAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
         Entry<K, V> entry = getEntry(key);
         if(entry == null) return OptionalValue.of();
         return OptionalValue.of(converter.convert((C) entry.getValue()));

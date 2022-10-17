@@ -17,6 +17,7 @@
 package me.linusdev.data;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 public interface OptionalValue<V> {
 
@@ -38,6 +39,7 @@ public interface OptionalValue<V> {
      * If a {@link OptionalValue} exists, the value returned by {@link #get()} can still be {@code null}.
      * @return {@code true} if this {@link OptionalValue} exists in the {@link AbstractData} this {@link OptionalValue} is of.
      */
+    @SuppressWarnings("unused")
     boolean exists();
 
     /**
@@ -47,7 +49,7 @@ public interface OptionalValue<V> {
      * @param <V> type
      */
     @ApiStatus.Internal
-    public static <V> OptionalValue<V> of(V value) {
+    public static <V> @NotNull OptionalValue<V> of(V value) {
         return new OptionalValueImplementation<>(value, true);
     }
 
@@ -57,7 +59,7 @@ public interface OptionalValue<V> {
      * @param <V> type
      */
     @ApiStatus.Internal
-    public static <V> OptionalValue<V> of() {
+    public static <V> @NotNull OptionalValue<V> of() {
         return new OptionalValueImplementation<>(null, false);
     }
 
