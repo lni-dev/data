@@ -52,7 +52,7 @@ public class SODataMapImpl implements SOData {
 
     @Override
     public @Nullable Entry<String, Object> remove(@NotNull String key) {
-        return new SAOEntryImpl(key, entries.remove(key));
+        return new SAOEntryImpl<>(key, entries.remove(key));
     }
 
     @Override
