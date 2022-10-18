@@ -49,12 +49,13 @@ import java.util.LinkedList;
  * </ul>
  *
  */
+@SuppressWarnings("unused")
 public interface SOData extends SAOData<Object> {
 
     /**
      * <p>
      *     This will create a new {@link SOData} which will keep the order the elements are added.
-     *     This {@link SOData} will be backed by a backed by a {@link ArrayList} with given initialCapacity.<br>
+     *     This {@link SOData} will be backed by a {@link ArrayList} with given initialCapacity.<br>
      *     This is useful for {@link AbstractData data objects} with known sizes or for {@link AbstractData data objects} with small
      *     sizes.
      * </p>
