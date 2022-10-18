@@ -21,9 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-public class MapEntryImpl extends SAOEntryImpl {
+public class MapEntryImpl extends SAOEntryImpl<Object> {
 
-    private @NotNull Map<String, Object> associatedMap;
+    private final @NotNull Map<String, Object> associatedMap;
 
     public MapEntryImpl(@NotNull Map<String, Object> associatedMap, String key) {
         super(key, null);
