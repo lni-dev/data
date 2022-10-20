@@ -79,6 +79,24 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     }
 
     /**
+     * Adds a new {@link Entry} with given {@code key} and {@link OptionalValue#get()} if given {@code optionalValue} {@link OptionalValue#exists() exists}. <br>
+     * <p>
+     * This method might not check, if a {@link Entry} with given {@code key} already exits.
+     * Depending on the implementation, this might even override existing mappings
+     * (for Example {@link SODataMapImpl SODataMapImpl}).
+     * </p>
+     *
+     * @param key {@link K} key
+     * @param optionalValue {@link OptionalValue}
+     * @return {@code true} if a new {@link Entry} was added, {@code false} otherwise
+     */
+    default boolean addIfOptionalExists(@NotNull K key, @NotNull OptionalValue<? extends V> optionalValue) {
+        if(optionalValue.exists())
+            return add(key, optionalValue.get());
+        return false;
+    }
+
+    /**
      * If no {@link Entry} for given key exists, a new {@link Entry} is added.<br>
      * If an {@link Entry} with given key exists, it's value is changed to given value.
      * @param key {@link K key}
