@@ -19,6 +19,7 @@ package me.linusdev.data;
 import me.linusdev.data.functions.Converter;
 import me.linusdev.data.functions.ExceptionConverter;
 import me.linusdev.data.entry.Entry;
+import me.linusdev.data.functions.ExceptionSupplier;
 import me.linusdev.data.functions.ValueFactory;
 import me.linusdev.data.implemantations.SODataMapImpl;
 import me.linusdev.data.parser.JsonParser;
@@ -680,6 +681,102 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         return false;
     }
 
+    /**
+     * <p>
+     *     {@link #get(Object) Gets} the value with given key and returns it, if the value is not {@code null}.
+     *     If the value is {@code null}, {@link E} supplied by your {@link ExceptionSupplier} will be thrown.
+     * </p>
+     * @param key {@link V} key
+     * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
+     * @return {@link V value} returned by {@link #get(Object)}. Never {@code null}.
+     * @param <E> The {@link Throwable} to be thrown if {@link #get(Object)} with given key returns {@code null}.
+     * @throws E if {@link #get(Object)} with given key returns {@code null}.
+     */
+    @NotNull
+    default <E extends Throwable> Object getRequireNotNull(@NotNull K key, @NotNull ExceptionSupplier<K, AbstractData<K, V>, E> exceptionSupplier) throws E {
+        Object obj = get(key);
+        if(obj == null) throw exceptionSupplier.supply(this, key);
+        return obj;
+    }
+
+    /**
+     * <p>
+     *     {@link #get(Object) Gets} the value with given key, casts it to {@link C} and returns it, if the value is not {@code null}.
+     *     If the value is {@code null}, {@link E} supplied by your {@link ExceptionSupplier} will be thrown.
+     * </p>
+     * @param key {@link V} key
+     * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
+     * @return {@link V value} cast to {@link C} returned by {@link #get(Object)}. Never {@code null}.
+     * @param <C> The class to cast to.
+     * @param <E> The {@link Throwable} to be thrown if {@link #get(Object)} with given key returns {@code null}.
+     * @throws E if {@link #get(Object)} with given key returns {@code null}.
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}.
+     */
+    @SuppressWarnings("unchecked")
+    @NotNull
+    default <C extends V, E extends Throwable> C getAsAndRequireNotNull(@NotNull K key, @NotNull ExceptionSupplier<K, AbstractData<K, V>, E> exceptionSupplier) throws E {
+        C obj = (C) get(key);
+        if(obj == null) throw exceptionSupplier.supply(this, key);
+        return obj;
+    }
+
+    /**
+     * <p>
+     *     {@link #get(Object) Gets} the value with given key and casts it to {@link C}.
+     *     If the value is not {@code null} it will be {@link Converter#convert(Object) converted} to {@link R} and then returned.
+     *     If the value is {@code null}, {@link E} supplied by your {@link ExceptionSupplier} will be thrown.
+     * </p>
+     * <p>
+     *     Note: if {@link #get(Object)} returns {@code null}, {@link Converter#convert(Object)} will <b>not</b> be called. So
+     *     it is safe for your {@link Converter} to assume not-null values.
+     * </p>
+     * @param key {@link V} key
+     * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}.
+     * @return {@link V value} cast to {@link C} returned by {@link #get(Object)}. Never {@code null}.
+     * @param <C> The class to cast to.
+     * @param <E> The {@link Throwable} to be thrown if {@link #get(Object)} with given key returns {@code null}.
+     * @param <R> The class to {@link Converter#convert(Object) convert} to.
+     * @throws E if {@link #get(Object)} with given key returns {@code null}.
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}.
+     */
+    @SuppressWarnings("unchecked")
+    @NotNull
+    default <C extends V, R, E extends Throwable> R getAndRequireNotNullAndConvert(@NotNull K key, @NotNull Converter<C, R> converter, @NotNull ExceptionSupplier<K, AbstractData<K, V>, E> exceptionSupplier) throws E {
+        C obj = (C) get(key);
+        if(obj == null) throw exceptionSupplier.supply(this, key);
+        return converter.convert(obj);
+    }
+
+    /**
+     * <p>
+     *     {@link #get(Object) Gets} the value with given key and casts it to {@link C}.
+     *     If the value is not {@code null} it will be {@link ExceptionConverter#convert(Object) converted} to {@link R} and then returned.
+     *     If the value is {@code null}, {@link E} supplied by your {@link ExceptionSupplier} will be thrown.
+     * </p>
+     * <p>
+     *     Note: if {@link #get(Object)} returns {@code null}, {@link ExceptionConverter#convert(Object)} will <b>not</b> be called. So
+     *     it is safe for your {@link ExceptionConverter} to assume not-null values.
+     * </p>
+     * @param key {@link V} key
+     * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
+     * @param converter {@link ExceptionConverter} to convert from {@link C} to {@link R}.
+     * @return {@link V value} cast to {@link C} returned by {@link #get(Object)}. Never {@code null}.
+     * @param <C> The class to cast to.
+     * @param <E> The {@link Throwable} to be thrown if {@link #get(Object)} with given key returns {@code null}.
+     * @param <F> The {@link Throwable} which your {@link ExceptionConverter} can throw.
+     * @param <R> The class to {@link Converter#convert(Object) convert} to.
+     * @throws E if {@link #get(Object)} with given key returns {@code null}.
+     * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}.
+     * @throws F if your {@link ExceptionConverter} throws this exception.
+     */
+    @SuppressWarnings("unchecked")
+    @NotNull
+    default <C extends V, R, E extends Throwable, F extends Throwable> R getAndRequireNotNullAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, F> converter, @NotNull ExceptionSupplier<K, AbstractData<K, V>, E> exceptionSupplier) throws E, F {
+        C obj = (C) get(key);
+        if(obj == null) throw exceptionSupplier.supply(this, key);
+        return converter.convert(obj);
+    }
 
     /**
      *

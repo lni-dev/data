@@ -50,7 +50,7 @@ import java.util.LinkedList;
  *
  */
 @SuppressWarnings("unused")
-public interface SOData extends SAOData<Object> {
+public interface SOData extends SAOData<Object>, SODatable {
 
     /**
      * <p>
@@ -107,5 +107,10 @@ public interface SOData extends SAOData<Object> {
      */
     static @NotNull SODataWrapper wrap(Object object) {
         return new SODataWrapperImpl(object);
+    }
+
+    @Override
+    default SOData getData() {
+        return this;
     }
 }
