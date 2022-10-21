@@ -560,7 +560,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      */
     @SuppressWarnings("unchecked")
-    default <C extends V, R> @Nullable ArrayList<R> getListAndConvert(@NotNull K key, @NotNull Converter<C, R> converter) {
+    default <C, R> @Nullable ArrayList<R> getListAndConvert(@NotNull K key, @NotNull Converter<C, R> converter) {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -584,7 +584,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws E if the functions throws this exception
      */
     @SuppressWarnings("unchecked")
-    default <C extends V, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -612,7 +612,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
      */
     @SuppressWarnings("unchecked")
-    default <C extends V, R> @Nullable ArrayList<R> getListAndConvertAndFreeMemory(@NotNull K key, @NotNull Converter<C, R> converter) {
+    default <C, R> @Nullable ArrayList<R> getListAndConvertAndFreeMemory(@NotNull K key, @NotNull Converter<C, R> converter) {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -643,7 +643,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws E if given converter throws an exception ({@link ExceptionConverter#convert(Object)})
      */
     @SuppressWarnings("unchecked")
-    default <C extends V, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithExceptionAndFreeMemory(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithExceptionAndFreeMemory(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -661,10 +661,9 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * <p>
      *     If an entry with given key exists, it will be processed by given consumer and {@code true} will be returned.<br>
      *     If an entry with given key does not exists, {@code false} will be returned.<br>
-     *     <br>
-     *     The entry will <b>NOT</b> be removed from this {@link AbstractData}
-     *
      * </p>
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * The entry's value may still be {@code null}. To assure non-null values use {@link #processIfNotNull(Object, Consumer)}.
      * @param key the key for the entry
      * @param consumer consumer to process the entry, if it exists
      * @param <C> type to cast to
@@ -676,6 +675,152 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         Entry<K, V> entry = getEntry(key);
         if(entry != null){
             consumer.accept((C) entry.getValue());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * <p>
+     *     If an entry with given key exists, it will be {@link Converter#convert(Object) converted} by given {@code converter},
+     *     then processed by given {@code consumer} and {@code true} will be returned.<br>
+     *     If an entry with given key does not exists, {@code false} will be returned.<br>
+     * </p>
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * The entry's value may still be {@code null}. To assure non-null values use {@link #processIfNotNull(Object, Consumer)}.
+     * @param key the key {@link K} for the entry.
+     * @param converter to convert from {@link C} to {@link R}.
+     * @param consumer consumer to process the entry, if it exists.
+     * @param <C> type to cast to.
+     * @param <R> type to convert to.
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}.
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise.
+     */
+    @SuppressWarnings("unchecked")
+    default <C extends V, R> boolean convertAndProcessIfContained(@NotNull K key, @NotNull Converter<C, R> converter, @NotNull Consumer<R> consumer){
+        Entry<K, V> entry = getEntry(key);
+        if(entry != null){
+            consumer.accept(converter.convert((C) entry.getValue()));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * <p>
+     *     If an entry with given key exists, it will be {@link ExceptionConverter#convert(Object) converted} by given {@code converter},
+     *     then processed by given {@code consumer} and {@code true} will be returned.<br>
+     *     If an entry with given key does not exists, {@code false} will be returned.<br>
+     * </p>
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * The entry's value may still be {@code null}. To assure non-null values use {@link #processIfNotNull(Object, Consumer)}.
+     * @param key the key {@link K} for the entry.
+     * @param converter to convert from {@link C} to {@link R}.
+     * @param consumer consumer to process the entry, if it exists.
+     * @param <C> type to cast to.
+     * @param <R> type to convert to.
+     * @param <E> exception your converter can throw.
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}.
+     * @throws E if your {@link ExceptionConverter} throws this exception.
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise.
+     */
+    @SuppressWarnings("unchecked")
+    default <C extends V, R, E extends Throwable> boolean convertWithExceptionAndProcessIfContained(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter, @NotNull Consumer<R> consumer) throws E {
+        Entry<K, V> entry = getEntry(key);
+        if(entry != null){
+            consumer.accept(converter.convert((C) entry.getValue()));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * <p>
+     *     If an entry with key exists, it will be cast to a {@link List} and then processed by given
+     *     {@code consumer} and {@code true} will be returned.
+     * </p>
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * The entry's value may still be {@code null}. To assure non-null values use {@link #processIfNotNull(Object, Consumer)}.
+     * @param key the key {@link K} for the entry.
+     * @param consumer consumer to process the entry, if it exists.
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise.
+     * @throws ClassCastException if the value of the entry with given key is not a {@link List}.
+     */
+    @SuppressWarnings("unchecked")
+    default boolean processListIfContained(@NotNull K key, @NotNull Consumer<List<Object>> consumer) {
+        Entry<K, V> entry = getEntry(key);
+        if(entry != null){
+            consumer.accept((List<Object>) entry.getValue());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * <p>
+     *     If an entry with given {@code key} exists, it will be cast to a {@link List} and every element cast to {@link C}
+     *     {@link Converter#convert(Object) converted} to {@link R}. All elements will be added to a new {@link List},
+     *     which will then be processed by given {@code consumer} and {@code true} will be returned.
+     * </p>
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * The entry's value may still be {@code null}. To assure non-null values use {@link #processIfNotNull(Object, Consumer)}.
+     * @param key the key {@link K} for the entry.
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}
+     * @param consumer consumer to process the entry, if it exists.
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise.
+     * @throws ClassCastException if the value of the entry with given key is not a {@link List}
+     * or if any element inside the list is not of type {@link C}.
+     */
+    @SuppressWarnings({"unchecked", "DuplicatedCode"})
+    default <C, R> boolean convertAndProcessListIfContained(@NotNull K key, @NotNull Converter<C, R> converter, @NotNull Consumer<List<R>> consumer) {
+        Entry<K, V> entry = getEntry(key);
+        if(entry != null){
+            List<Object> list = (List<Object>) entry.getValue();
+
+            if(list == null) {
+                consumer.accept(null);
+                return true;
+            }
+
+            ArrayList<R> converted = new ArrayList<>(list.size());
+            for(Object o : list)
+                converted.add(converter.convert((C) o));
+            consumer.accept(converted);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * <p>
+     *     If an entry with given {@code key} exists, it will be cast to a {@link List} and every element cast to {@link C}
+     *     {@link ExceptionConverter#convert(Object) converted} to {@link R}. All elements will be added to a new {@link List},
+     *     which will then be processed by given {@code consumer} and {@code true} will be returned.
+     * </p>
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * The entry's value may still be {@code null}. To assure non-null values use {@link #processIfNotNull(Object, Consumer)}.
+     * @param key the key {@link K} for the entry.
+     * @param converter {@link ExceptionConverter} to convert from {@link C} to {@link R}
+     * @param consumer consumer to process the entry, if it exists.
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise.
+     * @throws ClassCastException if the value of the entry with given key is not a {@link List}
+     * or if any element inside the list is not of type {@link C}.
+     */
+    @SuppressWarnings({"unchecked", "DuplicatedCode"})
+    default <C, R, E extends Throwable> boolean convertWithExceptionAndProcessListIfContained(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter, @NotNull Consumer<List<R>> consumer) throws E {
+        Entry<K, V> entry = getEntry(key);
+        if(entry != null){
+            List<Object> list = (List<Object>) entry.getValue();
+
+            if(list == null) {
+                consumer.accept(null);
+                return true;
+            }
+
+            ArrayList<R> converted = new ArrayList<>(list.size());
+            for(Object o : list)
+                converted.add(converter.convert((C) o));
+            consumer.accept(converted);
             return true;
         }
         return false;
