@@ -20,6 +20,20 @@ dependencies {
     implementation 'org.jetbrains:annotations:23.0.0'
 }
 
+javadoc {
+    options.encoding = 'UTF-8'
+    //options.addStringOption('Xdoclint:none', '-quiet')
+    title = "Data Json Parser"
+
+    configure(options) {
+        tags(
+                'implNote:a:Implementation Note:',
+                'implSpec:a:Implemenatation Requirements:',
+                'apiNote:a:API Note:'
+        )
+    }
+}
+
 java {
     withJavadocJar()
     withSourcesJar()
