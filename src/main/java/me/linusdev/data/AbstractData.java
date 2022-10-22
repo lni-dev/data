@@ -827,6 +827,124 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     }
 
     /**
+     * <ul>
+     *     <li>
+     *         If an entry with given key exists and it's value is not {@code null}, it will be processed by given
+     *         consumer and {@code true} will be returned.
+     *     </li>
+     *     <li>
+     *         If an entry with given key exists and it's value is {@code null}, the exception {@link E} supplied
+     *         by your {@link ExceptionSupplier} will be thrown.
+     *     </li>
+     *     <li>
+     *         If an entry with given key does not exists, {@code false} will be returned.
+     *     </li>
+     * </ul>
+     *
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * if {@link #get(Object)} returns {@code null}, {@link Converter#convert(Object)} will <b>not</b> be called. So
+     * it is safe for your {@link Converter} to assume not-null values.
+     *
+     * @param key the key for the entry
+     * @param consumer consumer to process the entry, if it exists
+     * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
+     * @param <C> type to cast to
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
+     * @throws E if an entry with given key exists, and its value is {@code null}.
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise
+     */
+    @SuppressWarnings("unchecked")
+    default <C extends V, E extends Throwable> boolean processIfContainedAndRequireNotNull(@NotNull K key, @NotNull Consumer<C> consumer, ExceptionSupplier<K,AbstractData<K, V>, E> exceptionSupplier) throws E {
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return false;
+        if(entry.getValue() == null) throw exceptionSupplier.supply(this, key);
+        consumer.accept((C) entry.getValue());
+        return true;
+    }
+
+    /**
+     * <ul>
+     *     <li>
+     *         If an entry with given key exists and it's value is not {@code null}, it will be cast to {@link C},
+     *         converted to {@link R} and then
+     *         processed by given
+     *         consumer and {@code true} will be returned.
+     *     </li>
+     *     <li>
+     *         If an entry with given key exists and it's value is {@code null}, the exception {@link E} supplied
+     *         by your {@link ExceptionSupplier} will be thrown.
+     *     </li>
+     *     <li>
+     *         If an entry with given key does not exists, {@code false} will be returned.
+     *     </li>
+     * </ul>
+     *
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * if {@link #get(Object)} returns {@code null}, {@link Converter#convert(Object)} will <b>not</b> be called. So
+     * it is safe for your {@link Converter} to assume not-null values.
+     *
+     * @param key the key for the entry
+     * @param converter {@link Converter} to convert from {@link C} to {@link R}.
+     * @param consumer consumer to process the entry, if it exists
+     * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
+     * @param <C> type to cast to
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
+     * @throws E if an entry with given key exists, and its value is {@code null}.
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise
+     */
+    @SuppressWarnings({"unchecked", "DuplicatedCode"})
+    default <C extends V, R, E extends Throwable> boolean convertAndProcessIfContainedAndRequireNotNull(@NotNull K key, Converter<C, R> converter, @NotNull Consumer<R> consumer, ExceptionSupplier<K,AbstractData<K, V>, E> exceptionSupplier) throws E {
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return false;
+        if(entry.getValue() == null) throw exceptionSupplier.supply(this, key);
+        consumer.accept(converter.convert((C) entry.getValue()));
+        return true;
+    }
+
+    /**
+     * <ul>
+     *     <li>
+     *         If an entry with given key exists and it's value is not {@code null}, it will be cast to {@link C},
+     *         converted to {@link R} and then
+     *         processed by given
+     *         consumer and {@code true} will be returned.
+     *     </li>
+     *     <li>
+     *         If an entry with given key exists and it's value is {@code null}, the exception {@link E} supplied
+     *         by your {@link ExceptionSupplier} will be thrown.
+     *     </li>
+     *     <li>
+     *         If an entry with given key does not exists, {@code false} will be returned.
+     *     </li>
+     * </ul>
+     *
+     * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
+     * if {@link #get(Object)} returns {@code null}, {@link Converter#convert(Object)} will <b>not</b> be called. So
+     * it is safe for your {@link Converter} to assume not-null values.
+     *
+     * @param key the key for the entry
+     * @param converter {@link ExceptionConverter} to convert from {@link C} to {@link R}.
+     * @param consumer consumer to process the entry, if it exists
+     * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
+     * @param <C> type to cast to.
+     * @param <E> exception supplied by your {@link ExceptionSupplier}.
+     * @param <R> type to convert to.
+     * @param <F> exception thrown by your {@link ExceptionConverter}.
+     * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
+     * @throws E if an entry with given key exists, and its value is {@code null}.
+     * @throws F if your {@code converter} throws this exception
+     * @return {@code true} if an entry with given key exists, {@code false} otherwise
+     */
+    @SuppressWarnings({"unchecked", "DuplicatedCode"})
+    default <C extends V, R, E extends Throwable, F extends Throwable> boolean convertWithExceptionAndProcessIfContainedAndRequireNotNull(@NotNull K key, ExceptionConverter<C, R, F> converter, @NotNull Consumer<R> consumer, ExceptionSupplier<K,AbstractData<K, V>, E> exceptionSupplier) throws E, F {
+        Entry<K, V> entry = getEntry(key);
+        if(entry == null) return false;
+        if(entry.getValue() == null) throw exceptionSupplier.supply(this, key);
+        consumer.accept(converter.convert((C) entry.getValue()));
+        return true;
+    }
+
+    /**
      *
      * @param key the key for the entry
      * @param consumer consumer to process the entry, if it exists, and it's value is not {@code null}.
@@ -856,7 +974,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws E if {@link #get(Object)} with given key returns {@code null}.
      */
     @NotNull
-    default <E extends Throwable> Object getRequireNotNull(@NotNull K key, @NotNull ExceptionSupplier<K, AbstractData<K, V>, E> exceptionSupplier) throws E {
+    default <E extends Throwable> Object getAndRequireNotNull(@NotNull K key, @NotNull ExceptionSupplier<K, AbstractData<K, V>, E> exceptionSupplier) throws E {
         Object obj = get(key);
         if(obj == null) throw exceptionSupplier.supply(this, key);
         return obj;
@@ -917,10 +1035,8 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *     If the value is not {@code null} it will be {@link ExceptionConverter#convert(Object) converted} to {@link R} and then returned.
      *     If the value is {@code null}, {@link E} supplied by your {@link ExceptionSupplier} will be thrown.
      * </p>
-     * <p>
-     *     Note: if {@link #get(Object)} returns {@code null}, {@link ExceptionConverter#convert(Object)} will <b>not</b> be called. So
-     *     it is safe for your {@link ExceptionConverter} to assume not-null values.
-     * </p>
+     * @implNote if {@link #get(Object)} returns {@code null}, {@link ExceptionConverter#convert(Object)} will <b>not</b> be called. So
+     * it is safe for your {@link ExceptionConverter} to assume not-null values.
      * @param key {@link V} key
      * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
      * @param converter {@link ExceptionConverter} to convert from {@link C} to {@link R}.
