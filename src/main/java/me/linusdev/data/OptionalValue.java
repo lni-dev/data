@@ -16,7 +16,7 @@
 
 package me.linusdev.data;
 
-import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public interface OptionalValue<V> {
@@ -48,7 +48,7 @@ public interface OptionalValue<V> {
      * @return new {@link OptionalValue}, that exists.
      * @param <V> type
      */
-    @ApiStatus.Internal
+    @Contract(value = "_ -> new", pure = true)
     public static <V> @NotNull OptionalValue<V> of(V value) {
         return new OptionalValueImplementation<>(value, true);
     }
@@ -58,7 +58,7 @@ public interface OptionalValue<V> {
      * @return new {@link OptionalValue}, that does not exist.
      * @param <V> type
      */
-    @ApiStatus.Internal
+    @Contract(value = " -> new", pure = true)
     public static <V> @NotNull OptionalValue<V> of() {
         return new OptionalValueImplementation<>(null, false);
     }
