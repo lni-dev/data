@@ -16,6 +16,8 @@
 
 package me.linusdev.data;
 
+import me.linusdev.data.container.Container;
+import me.linusdev.data.container.ContainerImpl;
 import me.linusdev.data.functions.Converter;
 import me.linusdev.data.functions.ExceptionConverter;
 import me.linusdev.data.entry.Entry;
@@ -189,6 +191,12 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         Entry<K, V> entry = getEntry(key);
         if(entry == null) return OptionalValue.of();
         return OptionalValue.of(converter.convert((C) entry.getValue()));
+    }
+
+    default @NotNull Container<K, V, V> getContainer(@NotNull K key) {
+        Entry<K, V> entry = getEntry(key);
+        boolean exists = entry != null;
+        return new ContainerImpl<>(this, key, exists ? entry.getValue() : null, exists);
     }
 
     /**
