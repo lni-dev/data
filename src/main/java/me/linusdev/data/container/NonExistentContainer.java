@@ -18,6 +18,7 @@ package me.linusdev.data.container;
 
 import me.linusdev.data.AbstractData;
 import me.linusdev.data.functions.Converter;
+import me.linusdev.data.functions.ExceptionConverter;
 import me.linusdev.data.functions.ExceptionSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,6 +88,11 @@ public class NonExistentContainer<K, V, O> implements Container<K, V, O> {
 
     @Override
     public @NotNull <C, R> Container<K, V, R> castAndConvert(@NotNull Converter<C, R> converter) {
+        return createNewContainer(null);
+    }
+
+    @Override
+    public @NotNull <C, R, E extends Throwable> Container<K, V, R> castAndConvert(@NotNull ExceptionConverter<C, R, E> converter) {
         return createNewContainer(null);
     }
 

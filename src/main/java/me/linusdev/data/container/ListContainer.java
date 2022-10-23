@@ -18,6 +18,8 @@ package me.linusdev.data.container;
 
 import me.linusdev.data.OptionalValue;
 import me.linusdev.data.functions.Converter;
+import me.linusdev.data.functions.ExceptionConverter;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,21 +30,22 @@ import java.util.function.Consumer;
 @SuppressWarnings("unused")
 public interface ListContainer<T> extends OptionalValue<List<T>> {
 
+    @ApiStatus.Internal
     <N> @NotNull ListContainer<N> createNew(@Nullable List<N> newValue);
 
-    @SuppressWarnings("unchecked")
     default <C, R> @NotNull ListContainer<R> castAndConvert(@NotNull Converter<C, R> converter) {
+        return castAndConvert((ExceptionConverter<C, R, RuntimeException>) converter);
+    }
+
+    @SuppressWarnings("unchecked")
+    default <C, R, E extends Throwable> @NotNull ListContainer<R> castAndConvert(@NotNull ExceptionConverter<C, R, E> converter) throws E {
         if(isNull()) return createNew(null);
+
         List<T> list = get();
         ArrayList<R> converted = new ArrayList<>(list.size());
         for(T t : list) converted.add(converter.convert((C) t));
 
         return createNew(converted);
-    }
-
-    default @NotNull ListContainer<T> ifExists() {
-        if(exists()) return this;
-        return new NonExistentListContainer<>();
     }
 
     default @NotNull ListContainer<T> process(@NotNull Consumer<List<T>> consumer) {

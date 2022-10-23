@@ -17,6 +17,7 @@
 package me.linusdev.data.container;
 
 import me.linusdev.data.functions.Converter;
+import me.linusdev.data.functions.ExceptionConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,8 +51,8 @@ public class NonExistentListContainer<T> implements ListContainer<T>{
     }
 
     @Override
-    public @NotNull ListContainer<T> ifExists() {
-        return this;
+    public @NotNull <C, R, E extends Throwable> ListContainer<R> castAndConvert(@NotNull ExceptionConverter<C, R, E> converter) {
+        return new NonExistentListContainer<>();
     }
 
     @Override

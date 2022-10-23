@@ -21,7 +21,7 @@ package me.linusdev.data.functions;
  * @param <C> convertible to convert
  * @param <R> result type to convert to
  */
-public interface Converter<C, R> {
+public interface Converter<C, R> extends ExceptionConverter<C, R, RuntimeException> {
 
     /**
      * converts from {@link C} to {@link R}

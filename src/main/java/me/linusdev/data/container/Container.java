@@ -19,7 +19,9 @@ package me.linusdev.data.container;
 import me.linusdev.data.AbstractData;
 import me.linusdev.data.OptionalValue;
 import me.linusdev.data.functions.Converter;
+import me.linusdev.data.functions.ExceptionConverter;
 import me.linusdev.data.functions.ExceptionSupplier;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,9 +32,13 @@ import java.util.function.Consumer;
 public interface Container<K, V, O> extends OptionalValue<O> {
 
     @NotNull K getKey();
+
     @NotNull AbstractData<K, V> getParentData();
 
+    @ApiStatus.Internal
     @NotNull <N> Container<K, V, N> createNewContainer(@Nullable N newValue);
+
+    @ApiStatus.Internal
     @NotNull <T> ListContainer<T> createNewListContainer(@Nullable List<T> newValue);
 
     default <E extends Throwable> @NotNull Container<K, V, O> requireNotNull(ExceptionSupplier<K, AbstractData<K,V>, E> supplier) throws E {
@@ -52,6 +58,11 @@ public interface Container<K, V, O> extends OptionalValue<O> {
 
     @SuppressWarnings("unchecked")
     default <C, R> @NotNull Container<K, V, R> castAndConvert(@NotNull Converter<C, R> converter) {
+        return createNewContainer(converter.convert((C) get()));
+    }
+
+    @SuppressWarnings("unchecked")
+    default <C, R, E extends Throwable> @NotNull Container<K, V, R> castAndConvert(@NotNull ExceptionConverter<C, R, E> converter) throws E {
         return createNewContainer(converter.convert((C) get()));
     }
 
