@@ -62,7 +62,7 @@ public interface Container<K, V, O> extends OptionalValue<O> {
     }
 
     @SuppressWarnings("unchecked")
-    default <C, R, E extends Throwable> @NotNull Container<K, V, R> castAndConvert(@NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C, R, E extends Throwable> @NotNull Container<K, V, R> castAndConvertWithException(@NotNull ExceptionConverter<C, R, E> converter) throws E {
         return createNewContainer(converter.convert((C) get()));
     }
 

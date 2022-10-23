@@ -51,7 +51,7 @@ public class NonExistentListContainer<T> implements ListContainer<T>{
     }
 
     @Override
-    public @NotNull <C, R, E extends Throwable> ListContainer<R> castAndConvert(@NotNull ExceptionConverter<C, R, E> converter) {
+    public @NotNull <C, R, E extends Throwable> ListContainer<R> castAndConvertWithException(@NotNull ExceptionConverter<C, R, E> converter) {
         return new NonExistentListContainer<>();
     }
 

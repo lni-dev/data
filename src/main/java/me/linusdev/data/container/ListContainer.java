@@ -33,12 +33,23 @@ public interface ListContainer<T> extends OptionalValue<List<T>> {
     @ApiStatus.Internal
     <N> @NotNull ListContainer<N> createNew(@Nullable List<N> newValue);
 
+    @SuppressWarnings("unchecked")
+    default <C> @NotNull ListContainer<C> cast() {
+        if(isNull()) return createNew(null);
+
+        List<T> list = get();
+        ArrayList<C> converted = new ArrayList<>(list.size());
+        for(T t : list) converted.add((C) t);
+
+        return createNew(converted);
+    }
+
     default <C, R> @NotNull ListContainer<R> castAndConvert(@NotNull Converter<C, R> converter) {
-        return castAndConvert((ExceptionConverter<C, R, RuntimeException>) converter);
+        return castAndConvertWithException(converter);
     }
 
     @SuppressWarnings("unchecked")
-    default <C, R, E extends Throwable> @NotNull ListContainer<R> castAndConvert(@NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C, R, E extends Throwable> @NotNull ListContainer<R> castAndConvertWithException(@NotNull ExceptionConverter<C, R, E> converter) throws E {
         if(isNull()) return createNew(null);
 
         List<T> list = get();
