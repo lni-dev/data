@@ -5,11 +5,12 @@ plugins {
     id 'signing'
 }
 
-group = 'io.github.lni-dev'
+group = 'io.github.lni-dev' //noinspection GroovyUnusedAssignment
 archivesBaseName = "data"
-version =  '2.0.17'
+version =  '2.0.18'
 
-targetCompatibility = JavaVersion.VERSION_1_9
+//noinspection GroovyUnusedAssignment
+targetCompatibility = JavaVersion.VERSION_1_9 //noinspection GroovyUnusedAssignment
 sourceCompatibility = JavaVersion.VERSION_1_9
 
 repositories {

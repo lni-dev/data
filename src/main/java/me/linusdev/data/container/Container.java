@@ -33,7 +33,7 @@ import java.util.function.Consumer;
  * offers several methods to process this value. All these methods will not have any effect on the parent data.
  * The value can be accessed using the {@link #get()} method and processed with the {@link #process(Consumer)} method.
  * <br><br>
- * <h3>Code examples</h3>
+ * <h2>Code examples</h2>
  * The following code will throw an exception if the json did not contain a key "some_key" or if its value was {@code null}.
  * Otherwise, it will just print the value of "some_key":
  * <pre>{@code

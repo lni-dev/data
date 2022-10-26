@@ -7,5 +7,6 @@ module me.linusdev.data {
     exports me.linusdev.data.implemantations;
     exports me.linusdev.data.so;
     exports me.linusdev.data.container;
+    exports me.linusdev.data.refl;
     requires org.jetbrains.annotations;
 }
