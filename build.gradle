@@ -21,6 +21,7 @@ dependencies {
     implementation 'org.jetbrains:annotations:23.0.0'
 }
 
+
 javadoc {
     options.encoding = 'UTF-8'
     //options.addStringOption('Xdoclint:none', '-quiet')
@@ -75,7 +76,7 @@ publishing {
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
                 developers {
@@ -90,7 +91,7 @@ publishing {
                 scm {
                     connection = 'scm:git:git://github.com/lni-dev/data.git'
                     developerConnection ='scm:git:ssh://github.com:lni-dev/data.git'
-                    url = 'http://github.com/lni-dev/data/tree/master'
+                    url = 'https://github.com/lni-dev/data/tree/master'
                 }
             }
         }
