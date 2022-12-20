@@ -28,6 +28,17 @@ public interface OptionalValue<V> {
     V get();
 
     /**
+     * Calls {@link #get()} and casts it {@link C}.
+     * @return {@link C} or {@code null}
+     * @param <C> class to cast to
+     * @throws ClassCastException if {@link V} cannot be cast to {@link C}.
+     */
+    @SuppressWarnings("unchecked")
+    default <C> C getAs() {
+        return (C) get();
+    }
+
+    /**
      *
      * @return {@code true} if {@link #get()} will return {@code null}.
      */

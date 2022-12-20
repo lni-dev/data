@@ -92,6 +92,11 @@ public class NonExistentContainer<K, V, O> implements Container<K, V, O> {
     }
 
     @Override
+    public @NotNull <C> Container<K, V, C> cast() {
+        return createNewContainer(null);
+    }
+
+    @Override
     public @NotNull <C, R, E extends Throwable> Container<K, V, R> castAndConvertWithException(@NotNull ExceptionConverter<C, R, E> converter) {
         return createNewContainer(null);
     }

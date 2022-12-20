@@ -56,6 +56,11 @@ public class NonExistentListContainer<T> implements ListContainer<T>{
     }
 
     @Override
+    public @NotNull <C> ListContainer<C> cast() {
+        return new NonExistentListContainer<>();
+    }
+
+    @Override
     public @NotNull ListContainer<T> process(@NotNull Consumer<List<T>> consumer) {
         return this;
     }
