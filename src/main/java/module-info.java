@@ -1,12 +1,12 @@
 module me.linusdev.data {
-    exports me.linusdev.data;
-    exports me.linusdev.data.parser;
-    exports me.linusdev.data.parser.exceptions;
-    exports me.linusdev.data.functions;
-    exports me.linusdev.data.entry;
-    exports me.linusdev.data.implemantations;
-    exports me.linusdev.data.so;
-    exports me.linusdev.data.container;
-    exports me.linusdev.data.refl;
+    exports de.linusdev.data;
+    exports de.linusdev.data.parser;
+    exports de.linusdev.data.parser.exceptions;
+    exports de.linusdev.data.functions;
+    exports de.linusdev.data.entry;
+    exports de.linusdev.data.implemantations;
+    exports de.linusdev.data.so;
+    exports de.linusdev.data.container;
+    exports de.linusdev.data.refl;
     requires org.jetbrains.annotations;
 }

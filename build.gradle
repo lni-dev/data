@@ -5,7 +5,7 @@ plugins {
     id 'signing'
 }
 
-group = 'io.github.lni-dev' //noinspection GroovyUnusedAssignment
+group = 'de.linusdev' //noinspection GroovyUnusedAssignment
 archivesBaseName = "data"
 version =  '2.1.0'
 
@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    api 'org.jetbrains:annotations:24.0.01'
+    api 'org.jetbrains:annotations:24.0.1'
     api 'de.linusdev:lutils:1.0.10'
 }
 
@@ -71,7 +71,7 @@ publishing {
                 name = 'data'
                 description = 'A Java Library to store data and parse it to JSON'
                 url = 'https://lni-dev.github.io/'
-                groupId = 'io.github.lni-dev'
+                groupId = 'de.linusdev'
                 version = project.version
 
                 licenses {
