@@ -5,9 +5,9 @@ plugins {
     id 'signing'
 }
 
-group = 'io.github.lni-dev' //noinspection GroovyUnusedAssignment
+group = 'de.linusdev' //noinspection GroovyUnusedAssignment
 archivesBaseName = "data"
-version =  '2.0.20'
+version =  '2.1.0'
 
 //noinspection GroovyUnusedAssignment
 targetCompatibility = JavaVersion.VERSION_1_9 //noinspection GroovyUnusedAssignment
@@ -18,7 +18,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:23.0.0'
+    implementation 'org.jetbrains:annotations:24.0.1'
+    api 'de.linusdev:lutils:1.0.10'
 }
 
 
@@ -69,15 +70,9 @@ publishing {
             pom {
                 name = 'data'
                 description = 'A Java Library to store data and parse it to JSON'
-                url = 'https://lni-dev.github.io/'
-                groupId = 'io.github.lni-dev'
+                url = 'https://www.linusdev.de/'
+                groupId = 'de.linusdev'
                 version = project.version
-
-                distributionManagement {
-                    relocation {
-                        groupId = 'de.linusdev'
-                    }
-                }
 
                 licenses {
                     license {
@@ -88,9 +83,9 @@ publishing {
                 developers {
                     developer {
                         id = 'linusdev'
-                        name = 'LinusDev'
-                        email = 'einsuperlinus@gmail.com'
-                        organizationUrl = 'https://lni-dev.github.io/'
+                        name = 'Linus Andera'
+                        email = 'linus@linusdev.de'
+                        organizationUrl = 'https://www.linusdev.de/'
                     }
                 }
 
