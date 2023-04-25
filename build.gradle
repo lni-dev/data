@@ -70,7 +70,7 @@ publishing {
             pom {
                 name = 'data'
                 description = 'A Java Library to store data and parse it to JSON'
-                url = 'https://lni-dev.github.io/'
+                url = 'https://www.linusdev.de/'
                 groupId = 'de.linusdev'
                 version = project.version
 
@@ -83,9 +83,9 @@ publishing {
                 developers {
                     developer {
                         id = 'linusdev'
-                        name = 'LinusDev'
-                        email = 'einsuperlinus@gmail.com'
-                        organizationUrl = 'https://lni-dev.github.io/'
+                        name = 'Linus Andera'
+                        email = 'linus@linusdev.de'
+                        organizationUrl = 'https://www.linusdev.de/'
                     }
                 }
 
