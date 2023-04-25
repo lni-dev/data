@@ -7,7 +7,7 @@ plugins {
 
 group = 'io.github.lni-dev' //noinspection GroovyUnusedAssignment
 archivesBaseName = "data"
-version =  '2.0.19'
+version =  '2.1.0'
 
 //noinspection GroovyUnusedAssignment
 targetCompatibility = JavaVersion.VERSION_1_9 //noinspection GroovyUnusedAssignment
@@ -18,7 +18,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:23.0.0'
+    api 'org.jetbrains:annotations:24.0.01'
+    api 'de.linusdev:lutils:1.0.10'
 }
 
 
