@@ -3,7 +3,7 @@ Data is used to store information and convert it to JSON
 or convert JSON to Data objects
 
 
-## Installation ![Maven Central](https://img.shields.io/maven-central/v/io.github.lni-dev/data?label=current%20newest%20version%3A%20)
+## Installation ![Maven Central](https://img.shields.io/maven-central/v/de.linusdev/data?label=current%20newest%20version%3A%20)
 Add it as implementation to your build.gradle. 
 ```groovy
 repositories {
@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.github.lni-dev:data:[version]'
+    implementation 'de.linusdev:data:[version]'
 }
 ```
 Replace `[version]` with the version you want to use.
