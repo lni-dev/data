@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     implementation 'org.jetbrains:annotations:24.0.1'
-    api 'de.linusdev:lutils:1.0.10'
+    api 'de.linusdev:lutils:1.0.11'
 }
 
 

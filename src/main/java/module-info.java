@@ -9,5 +9,5 @@ module me.linusdev.data {
     exports de.linusdev.data.container;
     exports de.linusdev.data.refl;
     requires org.jetbrains.annotations;
-    requires lutils;
+    requires de.linusdev.lutils;
 }
