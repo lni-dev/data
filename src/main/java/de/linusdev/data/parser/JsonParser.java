@@ -16,16 +16,16 @@
 
 package de.linusdev.data.parser;
 
-import de.linusdev.data.parser.exceptions.ParseException;
-import de.linusdev.data.parser.exceptions.UnexpectedCharacterException;
-import de.linusdev.data.parser.exceptions.UnexpectedEndException;
 import de.linusdev.data.AbstractData;
 import de.linusdev.data.Datable;
 import de.linusdev.data.ParseType;
-import de.linusdev.data.SimpleDatable;
 import de.linusdev.data.entry.Entry;
+import de.linusdev.data.parser.exceptions.ParseException;
+import de.linusdev.data.parser.exceptions.UnexpectedCharacterException;
+import de.linusdev.data.parser.exceptions.UnexpectedEndException;
 import de.linusdev.data.so.SAOEntryImpl;
 import de.linusdev.data.so.SOData;
+import de.linusdev.lutils.interfaces.Simplifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -431,8 +431,8 @@ public class JsonParser {
         } else if (value instanceof Datable) {
             writeJson(writer, offset, ((Datable) value).getData());
 
-        } else if (value instanceof SimpleDatable) {
-            writeJsonValue(writer, offset, ((SimpleDatable) value).simplify());
+        } else if (value instanceof Simplifiable) {
+            writeJsonValue(writer, offset, ((Simplifiable) value).simplify());
 
         } else if (value instanceof String) {
             writer.append('\"');

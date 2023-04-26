@@ -18,7 +18,6 @@ package de.linusdev.data.parser;
 
 import de.linusdev.data.AbstractData;
 import de.linusdev.data.Datable;
-import de.linusdev.data.SimpleDatable;
 import de.linusdev.data.entry.Entry;
 import de.linusdev.data.implemantations.SODataListImpl;
 import de.linusdev.data.parser.exceptions.ParseException;
@@ -27,6 +26,7 @@ import de.linusdev.data.parser.exceptions.UnexpectedCharacterException;
 import de.linusdev.data.parser.exceptions.UnexpectedEndException;
 import de.linusdev.data.so.SAOEntryImpl;
 import de.linusdev.data.so.SOData;
+import de.linusdev.lutils.interfaces.Simplifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -644,8 +644,8 @@ public class OldJsonParser {
         } else if (value instanceof Datable) {
             generateJsonString(((Datable) value).getData());
 
-        } else if (value instanceof SimpleDatable) {
-            jsonValueJsonString(((SimpleDatable) value).simplify());
+        } else if (value instanceof Simplifiable) {
+            jsonValueJsonString(((Simplifiable) value).simplify());
 
         } else if (value instanceof String) {
             str.append('\"');
@@ -798,8 +798,8 @@ public class OldJsonParser {
         } else if (value instanceof Datable) {
             writeJson(((Datable) value).getData());
 
-        } else if (value instanceof SimpleDatable) {
-            writeJsonValue(((SimpleDatable) value).simplify());
+        } else if (value instanceof Simplifiable) {
+            writeJsonValue(((Simplifiable) value).simplify());
 
         } else if (value instanceof String) {
             writer.append('\"');

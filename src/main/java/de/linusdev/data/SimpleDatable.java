@@ -16,14 +16,17 @@
 
 package de.linusdev.data;
 
+import de.linusdev.lutils.interfaces.Simplifiable;
+
 /**
  * implement this, if your Object can be simplified to an Object parsable by any {@link AbstractData} parser.
  */
-public interface SimpleDatable{
+public interface SimpleDatable extends Simplifiable {
 
     /**
      *
-     * @return must return Byte, Short, Integer, Long, Float, Double, Boolean or Datable
+     * @return must return Byte, Short, Integer, Long, Float, Double, Boolean, {@link String} or {@link Datable}
      */
+    @Override
     Object simplify();
 }
