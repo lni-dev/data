@@ -25,12 +25,16 @@ import de.linusdev.data.functions.Converter;
 import de.linusdev.data.functions.ExceptionSupplier;
 import de.linusdev.data.functions.ValueFactory;
 import de.linusdev.data.implemantations.SODataMapImpl;
+import de.linusdev.lutils.other.NumberUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -1063,6 +1067,48 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         C obj = (C) get(key);
         if(obj == null) throw exceptionSupplier.supply(this, key);
         return converter.convert(obj);
+    }
+
+    /**
+     * Converts this {@link AbstractData} to given {@code recordClass}. This conversion supports all
+     * primitive types, {@link String} and records.
+     * @param recordClass the class to the record {@link T}.
+     * @return record {@link T} filled by this {@link AbstractData}.
+     * @param <T> record class
+     */
+    default <T extends Record> @NotNull T toRecord(Class<T> recordClass) {
+        if(!recordClass.isRecord())
+            throw new IllegalArgumentException("Given recordClass '" + recordClass.getCanonicalName() + "' is not a record.");
+
+        RecordComponent[] comps = recordClass.getRecordComponents();
+        Object[] params = new Object[comps.length];
+
+        loop: for (Entry<K, V> entry : this) {
+            for (int i = 0; i < comps.length; i++) {
+                if (comps[i].getName().equals(entry.getKey().toString())) {
+                    if(comps[i].getType().isRecord() && entry.getValue() != null) {
+                        //noinspection unchecked
+                        params[i] = ((AbstractData<?,?>) entry.getValue()).toRecord((Class<? extends Record>) comps[i].getType());
+                    } else if (entry.getValue() instanceof Number num) {
+                        params[i] = NumberUtils.convertTo(num, comps[i].getType());
+                    } else {
+                        params[i] = entry.getValue();
+                    }
+                    continue loop;
+                }
+            }
+
+        }
+
+        Class<?>[] componentTypes = Arrays.stream(comps).map(RecordComponent::getType).toArray(Class<?>[]::new);
+        try {
+            return recordClass.getDeclaredConstructor(componentTypes).newInstance(params);
+        } catch (NoSuchMethodException | InstantiationException e) {
+            // Should never happen
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

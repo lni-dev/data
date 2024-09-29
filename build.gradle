@@ -7,19 +7,20 @@ plugins {
 
 group = 'de.linusdev' //noinspection GroovyUnusedAssignment
 archivesBaseName = "data"
-version =  '2.1.0'
+version =  '2.2.0'
 
 //noinspection GroovyUnusedAssignment
-targetCompatibility = JavaVersion.VERSION_11 //noinspection GroovyUnusedAssignment
-sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_17 //noinspection GroovyUnusedAssignment
+sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
     implementation 'org.jetbrains:annotations:24.0.1'
-    api 'de.linusdev:lutils:1.0.11'
+    api 'de.linusdev:lutils:2.0.0'
 }
 
 
