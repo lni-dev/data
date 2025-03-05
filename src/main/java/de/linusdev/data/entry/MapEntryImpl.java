@@ -21,22 +21,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-public class MapEntryImpl extends SAOEntryImpl<Object> {
+public class MapEntryImpl<O> extends SAOEntryImpl<O> {
 
-    private final @NotNull Map<String, Object> associatedMap;
+    private final @NotNull Map<String, O> associatedMap;
 
-    public MapEntryImpl(@NotNull Map<String, Object> associatedMap, String key) {
+    public MapEntryImpl(@NotNull Map<String, O> associatedMap, String key) {
         super(key, null);
         this.associatedMap = associatedMap;
     }
 
     @Override
-    public Object getValue() {
+    public O getValue() {
         return associatedMap.get(getKey());
     }
 
     @Override
-    public void setValue(Object value) {
+    public void setValue(O value) {
         super.setValue(value);
         associatedMap.put(getKey(), value);
     }
