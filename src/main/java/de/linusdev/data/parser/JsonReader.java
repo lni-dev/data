@@ -28,6 +28,8 @@ import java.io.Reader;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import static de.linusdev.data.parser.JsonParser.*;
+
 /**
  * A {@link Reader} like class, that makes reading a json-object much easier.
  */
@@ -83,7 +85,7 @@ public class JsonReader {
      * @throws IOException while reading or parsing
      * @throws ParseException while reading or parsing
      */
-    public @Nullable Object readValue(@NotNull ParseTracker tracker) throws IOException, ParseException {
+    public @Nullable Object readValue(@NotNull ParseTracker tracker, boolean allowToken) throws IOException, ParseException {
         StringBuilder str = new StringBuilder(50);
 
         int i = read(tracker);
@@ -100,10 +102,26 @@ public class JsonReader {
                 else if (valueString.equalsIgnoreCase(JsonParser.NULL)) return null;
 
                 //it should be a number
-                try {
-                    return NumberFormat.getNumberInstance(Locale.ENGLISH).parse(valueString);
-                } catch (java.text.ParseException e) {
-                    throw new ParseValueException(e, valueString, tracker);
+                if(allowToken){
+                    try {
+                        return switch (valueString.charAt(valueString.length() - 1)) {
+                            case BYTE_TOKEN     ->  Byte.parseByte(valueString.substring(0, valueString.length() - 1));
+                            case SHORT_TOKEN    ->  Short.parseShort(valueString.substring(0, valueString.length() - 1));
+                            case INTEGER_TOKEN  ->  Integer.parseInt(valueString.substring(0, valueString.length() - 1));
+                            case LONG_TOKEN     ->  Long.parseLong(valueString.substring(0, valueString.length() - 1));
+                            case FLOAT_TOKEN    ->  Float.parseFloat(valueString.substring(0, valueString.length() - 1));
+                            case DOUBLE_TOKEN   ->  Double.parseDouble(valueString.substring(0, valueString.length() - 1));
+                            default             ->  NumberFormat.getNumberInstance(Locale.ENGLISH).parse(valueString);
+                        };
+                    } catch (NumberFormatException | java.text.ParseException e) {
+                        throw new ParseValueException(e, valueString, tracker);
+                    }
+                } else {
+                    try {
+                        return NumberFormat.getNumberInstance(Locale.ENGLISH).parse(valueString);
+                    } catch (java.text.ParseException e) {
+                        throw new ParseValueException(e, valueString, tracker);
+                    }
                 }
             }
 

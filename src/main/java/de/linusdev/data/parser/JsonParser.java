@@ -111,12 +111,20 @@ public class JsonParser {
 
     public static final String DEFAULT_ARRAY_WRAPPER_KEY = "array";
 
+    public static final char BYTE_TOKEN = 'B';
+    public static final char SHORT_TOKEN = 'S';
+    public static final char INTEGER_TOKEN = 'I';
+    public static final char LONG_TOKEN = 'L';
+    public static final char FLOAT_TOKEN = 'F';
+    public static final char DOUBLE_TOKEN = 'D';
+
     //Configurable stuff
     private @NotNull String indent = "\t";
 
     private @NotNull Supplier<SOData> dataSupplier = SOData::newOrderedDataWithUnknownSize;
     private @NotNull String arrayWrapperKey = DEFAULT_ARRAY_WRAPPER_KEY;
     private boolean allowNewLineInStrings = true;
+    private boolean identifyNumberValues = false;
 
     /*
      *
@@ -158,6 +166,23 @@ public class JsonParser {
      */
     public void setAllowNewLineInStrings(boolean allowNewLineInStrings) {
         this.allowNewLineInStrings = allowNewLineInStrings;
+    }
+
+    /**
+     * If enabled it puts a single character (token) after a number, to identify which type of number it is. The tokens are the following: <br>
+     * <ul>
+     *     <li>Byte: B {@link #BYTE_TOKEN}</li>
+     *     <li>Short: S {@link #SHORT_TOKEN}</li>
+     *     <li>Integer: I {@link #INTEGER_TOKEN}</li>
+     *     <li>Long: L {@link #LONG_TOKEN}</li>
+     *     <li>Float: F {@link #FLOAT_TOKEN}</li>
+     *     <li>Double: D {@link #DOUBLE_TOKEN}</li>
+     * </ul>
+     * Default: {@code false}
+     * @param identifyNumberValues {@code true} to enable the feature described above
+     */
+    public void setIdentifyNumberValues(boolean identifyNumberValues) {
+        this.identifyNumberValues = identifyNumberValues;
     }
 
     /*
@@ -306,7 +331,7 @@ public class JsonParser {
         } else {
             //boolean or number
             reader.pushBack(i);
-            return reader.readValue(tracker);
+            return reader.readValue(tracker, identifyNumberValues);
 
         }
     }
@@ -369,9 +394,9 @@ public class JsonParser {
         StringBuilder writer = new StringBuilder(data == null ? 10 : data.size() * 10);
         try {
             writeData(writer, data);
-        } catch (IOException ignored) {
-            //will never happen, because StringBuilder, does not throw this exception, but let's print it anyway.
-            ignored.printStackTrace();
+        } catch (IOException _ignored) {
+            //noinspection CallToPrintStackTrace will never happen, because StringBuilder, does not throw this exception, but let's print it anyway.
+            _ignored.printStackTrace();
         }
         return writer;
     }
@@ -444,28 +469,34 @@ public class JsonParser {
 
         } else if (value instanceof Integer) {
             writer.append(value.toString());
+            if (identifyNumberValues) writer.append(INTEGER_TOKEN);
 
         } else if (value instanceof Long) {
             writer.append(value.toString());
+            if (identifyNumberValues) writer.append(LONG_TOKEN);
 
         } else if (value instanceof Byte) {
             writer.append(value.toString());
+            if (identifyNumberValues) writer.append(BYTE_TOKEN);
 
         } else if (value instanceof Short) {
             writer.append(value.toString());
+            if (identifyNumberValues) writer.append(SHORT_TOKEN);
 
         } else if (value instanceof Double) {
             writer.append(value.toString());
+            if (identifyNumberValues) writer.append(DOUBLE_TOKEN);
 
         } else if (value instanceof Float) {
             writer.append(value.toString());
+            if (identifyNumberValues) writer.append(FLOAT_TOKEN);
 
         } else if (value instanceof Collection) {
             writer.append('[').append('\n');
             offset.add();
 
             boolean first = true;
-            for (Object o : (Collection) value) {
+            for (Object o : (Collection<?>) value) {
                 if (!first) writer.append(',').append('\n');
                 else first = false;
                 writer.append(offset.toString());
@@ -480,38 +511,32 @@ public class JsonParser {
             writeJsonValue(writer, offset, (Object[]) value);
 
         } else if (value.getClass().isArray()) {
-            if (value instanceof byte[]) {
-                byte[] a = (byte[]) value;
+            if (value instanceof byte[] a) {
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
                 writeJsonValue(writer, offset, o);
 
-            } else if (value instanceof short[]) {
-                short[] a = (short[]) value;
+            } else if (value instanceof short[] a) {
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
                 writeJsonValue(writer, offset, o);
 
-            } else if (value instanceof int[]) {
-                int[] a = (int[]) value;
+            } else if (value instanceof int[] a) {
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
                 writeJsonValue(writer, offset, o);
 
-            } else if (value instanceof long[]) {
-                long[] a = (long[]) value;
+            } else if (value instanceof long[] a) {
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
                 writeJsonValue(writer, offset, o);
 
-            } else if (value instanceof float[]) {
-                float[] a = (float[]) value;
+            } else if (value instanceof float[] a) {
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
                 writeJsonValue(writer, offset, o);
 
-            } else if (value instanceof double[]) {
-                double[] a = (double[]) value;
+            } else if (value instanceof double[] a) {
                 Object[] o = new Object[a.length];
                 for (int i = 0; i < a.length; i++) o[i] = a[i];
                 writeJsonValue(writer, offset, o);

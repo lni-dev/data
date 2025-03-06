@@ -7,7 +7,7 @@ plugins {
 
 group = 'de.linusdev' //noinspection GroovyUnusedAssignment
 archivesBaseName = "data"
-version =  '2.2.1'
+version =  '2.2.2'
 
 //noinspection GroovyUnusedAssignment
 targetCompatibility = JavaVersion.VERSION_17 //noinspection GroovyUnusedAssignment
