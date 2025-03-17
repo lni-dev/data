@@ -379,9 +379,8 @@ public class JsonParser {
      *
      * @param data {@link AbstractData} to write to a {@link StringBuffer}
      * @return {@link StringBuffer#toString()}
-     * @throws IOException {@link IOException} while writing
      */
-    public @NotNull String writeDataToString(@Nullable AbstractData<?, ?> data) throws IOException {
+    public @NotNull String writeDataToString(@Nullable AbstractData<?, ?> data) {
         return writeDataToStringBuilder(data).toString();
     }
 
