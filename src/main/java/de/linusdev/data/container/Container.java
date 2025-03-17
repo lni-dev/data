@@ -204,4 +204,16 @@ public interface Container<K, V, O> extends OptionalValue<O> {
         consumer.accept(get());
         return this;
     }
+
+    /**
+     * If the value {@link #isNull() is null} a new container with given {@code defaultValue} will be returned.
+     * Otherwise, the container itself will be returned.
+     * @param defaultValue default value if current value {@link #isNull() is null}.
+     * @return this or new container with given {@code defaultValue}.
+     */
+    default @NotNull Container<K, V, O> orDefaultIfNull(O defaultValue) {
+        if(isNull())
+            return createNewContainer(defaultValue);
+        return this;
+    }
 }
