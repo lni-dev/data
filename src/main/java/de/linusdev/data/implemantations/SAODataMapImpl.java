@@ -71,6 +71,11 @@ public class SAODataMapImpl<O> implements SAOData<O> {
         return entries.size();
     }
 
+    @Override
+    public void clear() {
+        entries.clear();
+    }
+
     @NotNull
     @Override
     public Iterator<Entry<String, O>> iterator() {

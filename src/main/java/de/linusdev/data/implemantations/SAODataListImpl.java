@@ -77,6 +77,11 @@ public class SAODataListImpl<O> implements SAOData<O> {
     }
 
     @Override
+    public void clear() {
+        entries.clear();
+    }
+
+    @Override
     public Iterator<Entry<String, O>> iterator() {
         return entries.iterator();
     }

@@ -1124,6 +1124,11 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     int size();
 
     /**
+     * Removes all key value pairs from this {@link AbstractData}.
+     */
+    void clear();
+
+    /**
      * Writes this {@link AbstractData} to a {@link StringBuilder}.
      * @return {@link StringBuilder}
      */

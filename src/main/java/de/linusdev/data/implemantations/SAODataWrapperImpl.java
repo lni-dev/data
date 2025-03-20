@@ -41,5 +41,8 @@ public class SAODataWrapperImpl<O> implements SAODataWrapper<O> {
         return entry;
     }
 
-
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("Cannot clear a wrapper.");
+    }
 }
