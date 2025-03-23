@@ -45,7 +45,7 @@ import java.util.function.Consumer;
  * @param <K> key
  * @param <V> value
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
 
     public static final JsonParser PARSER = new JsonParser();
@@ -1083,7 +1083,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         RecordComponent[] comps = recordClass.getRecordComponents();
         Object[] params = new Object[comps.length];
 
-        loop: for (Entry<K, V> entry : this) {
+        loop: for (var entry : this) {
             for (int i = 0; i < comps.length; i++) {
                 if (comps[i].getName().equals(entry.getKey().toString())) {
                     if(comps[i].getType().isRecord() && entry.getValue() != null) {

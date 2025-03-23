@@ -30,13 +30,18 @@ import java.util.function.Function;
  * @param <K> key
  * @param <V> value
  */
-public interface Entry<K, V> {
+public interface Entry<K, V> extends de.linusdev.lutils.collections.Entry<K, V> {
 
     /**
      *
      * @return the {@link V value} of this entry
      */
     V getValue();
+
+    @Override
+    default V value() {
+        return getValue();
+    }
 
     /**
      * sets the {@link V value} of this entry
@@ -63,4 +68,9 @@ public interface Entry<K, V> {
      * @return the {@link K key} of this entry
      */
     K getKey();
+
+    @Override
+    default K key() {
+        return getKey();
+    }
 }

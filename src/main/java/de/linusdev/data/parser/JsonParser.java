@@ -46,13 +46,13 @@ import java.util.function.Supplier;
  *         {@link Boolean}, {@link Byte}, {@link Short}, {@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link String},
  *     </li>
  *     <li>
- *         {@link Datable}
+ *         {@link Datable}, {@link Simplifiable}
  *     </li>
  *     <li>
  *          any primitive type array
  *     </li>
  *     <li>
- *         {@link Object}[] and {@link Collection} of the before mentioned Classes
+ *         arrays and {@link Collection collections} of the before mentioned Classes
  *     </li>
  * </ul>
  * <br>
