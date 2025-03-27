@@ -166,11 +166,11 @@ public interface Container<K, V, O> extends OptionalValue<O> {
     }
 
     /**
-     * If the value does <b>not</b> {@link #exists() exist}, a new {@link NonExistentContainer} will be returned.
+     * If the value does <b>not</b> {@link #exists() exist}, a new {@link NoActionContainer} will be returned.
      * All Operations on this container will have no effect. This means:
      * <ul>
      *     <li>
-     *         {@link #get()} will throw a {@link NonExistentException}.
+     *         {@link #get()} will throw a {@link NoActionException}.
      *     </li>
      *     <li>
      *         {@link #process(Consumer)} will not execute the given {@link Consumer}.
@@ -191,7 +191,37 @@ public interface Container<K, V, O> extends OptionalValue<O> {
      */
     default @NotNull Container<K, V, O> ifExists() {
         if(exists()) return this;
-        return new NonExistentContainer<>(getParentData(), getKey());
+        return new NoActionContainer<>(getParentData(), getKey(), NoActionContainer.Reason.NON_EXISTENT);
+    }
+
+    /**
+     * If the value {@link #isNull() is null}, a new {@link NoActionContainer} will be returned.
+     * All Operations on this container will have no effect. This means:
+     * <ul>
+     *     <li>
+     *         {@link #get()} will throw a {@link NoActionException}.
+     *     </li>
+     *     <li>
+     *         {@link #process(Consumer)} will not execute the given {@link Consumer}.
+     *     </li>
+     *     <li>
+     *         {@link #requireNotNull()} or {@link #requireNotNull(ExceptionSupplier)} will never throw an exception.
+     *     </li>
+     * </ul>
+     * <p>
+     *     If the value does {@link #exists() exist}, the {@link Container} itself (this) is returned.
+     * </p>
+     * <p>
+     *     This method should be mainly used in combination with the {@link #process(Consumer)} method and then functions
+     *     similar to {@link AbstractData#processIfContained(Object, Consumer)}, but can be combined with all other
+     *     container methods.
+     * </p>
+     * @return {@link Container}
+     */
+    default @NotNull Container<K, V, O> ifNotNull() {
+        if(isNull())
+            return new NoActionContainer<>(getParentData(), getKey(), NoActionContainer.Reason.NULL);
+        return this;
     }
 
     /**

@@ -16,8 +16,10 @@
 
 package de.linusdev.data.container;
 
-public class NonExistentException extends RuntimeException {
-    public NonExistentException(Object key) {
-        super("Key '" +  key + "' does not exist.");
+import org.jetbrains.annotations.NotNull;
+
+public class NoActionException extends RuntimeException {
+    public NoActionException(Object key, @NotNull NoActionContainer.Reason reason) {
+        super(String.format(reason.message, key));
     }
 }

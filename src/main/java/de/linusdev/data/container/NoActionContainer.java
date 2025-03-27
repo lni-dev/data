@@ -20,25 +20,41 @@ import de.linusdev.data.functions.ExceptionConverter;
 import de.linusdev.data.AbstractData;
 import de.linusdev.data.functions.Converter;
 import de.linusdev.data.functions.ExceptionSupplier;
+import org.intellij.lang.annotations.PrintFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
 
-public class NonExistentContainer<K, V, O> implements Container<K, V, O> {
+public class NoActionContainer<K, V, O> implements Container<K, V, O> {
 
     private final @NotNull AbstractData<K, V> parentData;
     private final @NotNull K key;
+    private final @NotNull Reason reason;
 
-    public NonExistentContainer(@NotNull AbstractData<K, V> parentData, @NotNull K key) {
+    public enum Reason {
+        NON_EXISTENT("Key '%s' does not exist."),
+        NULL("The value of key '%s' is null or the key does not exist."),
+        ;
+
+        @PrintFormat
+        public final @NotNull String message;
+
+        Reason(@PrintFormat @NotNull String message) {
+            this.message = message;
+        }
+    }
+
+    public NoActionContainer(@NotNull AbstractData<K, V> parentData, @NotNull K key, @NotNull Reason reason) {
         this.parentData = parentData;
         this.key = key;
+        this.reason = reason;
     }
 
     @Override
     public O get() {
-        throw new NonExistentException(getKey());
+        throw new NoActionException(getKey(), reason);
     }
 
     @Override
@@ -63,7 +79,7 @@ public class NonExistentContainer<K, V, O> implements Container<K, V, O> {
 
     @Override
     public @NotNull <N> Container<K, V, N> createNewContainer(@Nullable N newValue) {
-        return new NonExistentContainer<>(parentData, key);
+        return new NoActionContainer<>(parentData, key, reason);
     }
 
     @Override
