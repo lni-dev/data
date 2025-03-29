@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Linus Andera
+ * Copyright (c) 2023-2025 Linus Andera
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package de.linusdev.data;
 import de.linusdev.data.container.Container;
 import de.linusdev.data.container.ContainerImpl;
 import de.linusdev.data.entry.Entry;
-import de.linusdev.data.functions.ExceptionConverter;
-import de.linusdev.data.parser.JsonParser;
 import de.linusdev.data.functions.Converter;
+import de.linusdev.data.functions.ExceptionConverter;
 import de.linusdev.data.functions.ExceptionSupplier;
 import de.linusdev.data.functions.ValueFactory;
 import de.linusdev.data.implemantations.SODataMapImpl;
+import de.linusdev.data.parser.JsonParser;
 import de.linusdev.lutils.other.NumberUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
