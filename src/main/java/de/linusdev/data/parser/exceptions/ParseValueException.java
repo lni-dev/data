@@ -16,11 +16,12 @@
 
 package de.linusdev.data.parser.exceptions;
 
-import de.linusdev.data.parser.ParseTracker;
+import de.linusdev.lutils.other.parser.ParseException;
+import de.linusdev.lutils.other.parser.ParseTracker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ParseValueException extends ParseException{
+public class ParseValueException extends ParseException {
 
     private final Exception exception;
     private final String value;

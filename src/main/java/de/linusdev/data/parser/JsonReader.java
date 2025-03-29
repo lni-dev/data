@@ -16,10 +16,10 @@
 
 package de.linusdev.data.parser;
 
-import de.linusdev.data.parser.exceptions.ParseException;
 import de.linusdev.data.parser.exceptions.ParseValueException;
-import de.linusdev.data.parser.exceptions.UnexpectedCharacterException;
-import de.linusdev.data.parser.exceptions.UnexpectedEndException;
+import de.linusdev.lutils.other.parser.ParseException;
+import de.linusdev.lutils.other.parser.ParseTracker;
+import de.linusdev.lutils.other.parser.UnexpectedEndException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,7 +95,7 @@ public class JsonReader {
                 pushBack(i);
                 String valueString = str.toString();
 
-                if(valueString.isEmpty()) throw new UnexpectedCharacterException((char) i, tracker);
+                if(valueString.isEmpty()) throw new ParseException(tracker, (char) i);
 
                 if (valueString.equalsIgnoreCase(JsonParser.TRUE)) return true;
                 else if (valueString.equalsIgnoreCase(JsonParser.FALSE)) return false;
@@ -139,10 +139,9 @@ public class JsonReader {
      * @param tracker {@link ParseTracker}
      * @return read {@link String}
      * @throws IOException while reading or parsing
-     * @throws UnexpectedEndException while reading or parsing
-     * @throws UnexpectedCharacterException while reading or parsing
+     * @throws ParseException while reading or parsing
      */
-    public String readString(boolean allowNewLine, @NotNull ParseTracker tracker) throws IOException, UnexpectedEndException, UnexpectedCharacterException {
+    public String readString(boolean allowNewLine, @NotNull ParseTracker tracker) throws IOException, ParseException {
         StringBuilder str = new StringBuilder(1024);
 
         int i;
@@ -196,7 +195,7 @@ public class JsonReader {
                     return str.toString();
 
                 } else if (c == '\n') {
-                    if (!allowNewLine) throw new UnexpectedCharacterException(c, tracker);
+                    if (!allowNewLine) throw new ParseException(tracker, c);
                     str.append(c);
                     tracker.nextLine();
 

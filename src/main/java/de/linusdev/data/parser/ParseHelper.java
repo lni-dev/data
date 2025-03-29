@@ -32,6 +32,7 @@ public class ParseHelper {
         }
     }
 
+    @SuppressWarnings("UnnecessaryUnicodeEscape")
     public static void escape2(@NotNull String s, @NotNull Appendable str) throws IOException {
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);

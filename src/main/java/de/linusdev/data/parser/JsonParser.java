@@ -20,12 +20,12 @@ import de.linusdev.data.AbstractData;
 import de.linusdev.data.Datable;
 import de.linusdev.data.ParseType;
 import de.linusdev.data.entry.Entry;
-import de.linusdev.data.parser.exceptions.ParseException;
-import de.linusdev.data.parser.exceptions.UnexpectedCharacterException;
-import de.linusdev.data.parser.exceptions.UnexpectedEndException;
 import de.linusdev.data.so.SAOEntryImpl;
 import de.linusdev.data.so.SOData;
 import de.linusdev.lutils.interfaces.Simplifiable;
+import de.linusdev.lutils.other.parser.ParseException;
+import de.linusdev.lutils.other.parser.ParseTracker;
+import de.linusdev.lutils.other.parser.UnexpectedEndException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,11 +126,11 @@ public class JsonParser {
     private boolean allowNewLineInStrings = true;
     private boolean identifyNumberValues = false;
 
-    /*
-     *
-     *              Config setter
-     *
-     */
+    /* ================================================================================================= *\
+    |                                                                                                     |
+    |                                             Config setter                                           |
+    |                                                                                                     |
+    \* ================================================================================================= */
 
     /**
      * What to use as indent.<br>
@@ -185,11 +185,11 @@ public class JsonParser {
         this.identifyNumberValues = identifyNumberValues;
     }
 
-    /*
-     *
-     *              Stream to Data
-     *
-     */
+    /* ================================================================================================= *\
+    |                                                                                                     |
+    |                                             Stream to Data                                          |
+    |                                                                                                     |
+    \* ================================================================================================= */
 
     /**
      * parses the content of given stream to a {@link SOData}.<br>
@@ -258,7 +258,7 @@ public class JsonParser {
             return data;
 
         } else {
-            throw new UnexpectedCharacterException((char) i, tracker);
+            throw new ParseException(tracker, (char) i);
         }
 
     }
@@ -279,13 +279,13 @@ public class JsonParser {
 
         while(i != -1){
             //inside the json-object, we first expect a key...
-            if(i != QUOTE_CHAR) throw new UnexpectedCharacterException((char) i, tracker);
+            if(i != QUOTE_CHAR) throw new ParseException(tracker, (char) i);
 
             SAOEntryImpl<Object> entry = new SAOEntryImpl<>(reader.readString(allowNewLineInStrings, tracker));
 
             //now we expect a colon (':')
             i = reader.read(tracker);
-            if(i != COLON_CHAR) throw new UnexpectedCharacterException((char) i, tracker);
+            if(i != COLON_CHAR) throw new ParseException(tracker, (char) i);
 
             //now read the value for the key
             entry.setValue(parseJsonValue(reader, tracker));
@@ -299,7 +299,7 @@ public class JsonParser {
                 continue;
             }
             if(i == CURLY_BRACKET_CLOSE_CHAR) return data;
-            throw new UnexpectedCharacterException((char) i, tracker);
+            throw new ParseException(tracker, (char) i);
         }
 
         throw new UnexpectedEndException(tracker);
@@ -362,18 +362,18 @@ public class JsonParser {
                 continue;
             }
             else if(i == SQUARE_BRACKET_CLOSE_CHAR) return list;
-            throw new UnexpectedCharacterException((char) i, tracker);
+            throw new ParseException(tracker, (char) i);
         }
 
         throw new UnexpectedEndException(tracker);
     }
 
+    /* ================================================================================================= *\
+    |                                                                                                     |
+    |                                             Data to String                                          |
+    |                                                                                                     |
+    \* ================================================================================================= */
 
-    /*
-     *
-     *              Data to String
-     *
-     */
 
     /**
      *
