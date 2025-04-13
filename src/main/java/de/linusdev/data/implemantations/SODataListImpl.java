@@ -26,4 +26,15 @@ public class SODataListImpl extends SAODataListImpl<Object> implements SOData {
     public SODataListImpl(@NotNull List<Entry<String, Object>> list) {
         super(list);
     }
+
+    @Override
+    public @NotNull SOData add(@NotNull String key, Object value) {
+        super.add(key, value);
+        return this;
+    }
+
+    @Override
+    public SOData getData() {
+        return SOData.super.getData();
+    }
 }

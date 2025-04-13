@@ -39,8 +39,9 @@ public class SAODataListImpl<O> implements SAOData<O> {
      * @param value value
      */
     @Override
-    public boolean add(@NotNull String key, O value){
-        return entries.add(new SAOEntryImpl<>(key, value));
+    public @NotNull SAOData<O> add(@NotNull String key, O value) {
+        entries.add(new SAOEntryImpl<>(key, value));
+        return this;
     }
 
     @Override
@@ -82,7 +83,7 @@ public class SAODataListImpl<O> implements SAOData<O> {
     }
 
     @Override
-    public Iterator<Entry<String, O>> iterator() {
+    public @NotNull Iterator<Entry<String, O>> iterator() {
         return entries.iterator();
     }
 }

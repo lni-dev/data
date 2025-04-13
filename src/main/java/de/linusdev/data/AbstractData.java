@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A {@link AbstractData} can store key-value pairs.
@@ -60,9 +61,9 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      *
      * @param key key
      * @param value value
-     * @return {@code true} if a new {@link Entry} was added, {@code false} otherwise
+     * @return this
      */
-    boolean add(@NotNull K key, @Nullable V value);
+    @NotNull AbstractData<K, V> add(@NotNull K key, @Nullable V value);
 
     /**
      * Adds a new {@link Entry} if given value is not {@code null}. <br>
@@ -97,8 +98,11 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @return {@code true} if a new {@link Entry} was added, {@code false} otherwise
      */
     default boolean addIfOptionalExists(@NotNull K key, @NotNull OptionalValue<? extends V> optionalValue) {
-        if(optionalValue.exists())
-            return add(key, optionalValue.get());
+        if(optionalValue.exists()) {
+            add(key, optionalValue.get());
+            return true;
+        }
+
         return false;
     }
 
@@ -1109,6 +1113,47 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * If a value with given {@code key} exists ({@link #getEntry(Object)} is not null), it will be returned.
+     * Otherwise, the value returned by given {@code supplier} will be added at given {@code key}
+     * and returned.
+     */
+    default V computeIfAbsent(@NotNull K key, @NotNull Function<K, V> supplier) {
+        var entry = getEntry(key);
+        if(entry != null)
+            return entry.getValue();
+        V value = supplier.apply(key);
+        add(key, value);
+        return value;
+    }
+
+    /**
+     * If a value with given {@code key} is not null ({@link #get(Object) is not null), it will be returned.
+     * Otherwise, the value returned by given {@code supplier} will be added at given {@code key}
+     * and returned.
+     */
+    default V computeIfAbsentOrNull(@NotNull K key, @NotNull Function<K, V> supplier) {
+        var entry = getEntry(key);
+        if(entry != null && entry.getValue() != null)
+            return entry.getValue();
+
+        V value = supplier.apply(key);
+
+        if(entry != null) entry.setValue(value);
+        else add(key, value);
+
+        return value;
+    }
+
+    /**
+     * {@link #add(Object, Object) Adds} given {@code value} at given {@code key} and
+     * returns given {@code value}.
+     */
+    default <T extends V> T addAndGet(@NotNull K key, T value) {
+        add(key, value);
+        return value;
     }
 
     /**

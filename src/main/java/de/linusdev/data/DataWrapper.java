@@ -56,7 +56,7 @@ public interface DataWrapper<K, V> extends ContentOnlyData<K, V> {
     }
 
     @Override
-    default boolean add(@NotNull K key, @Nullable V value) {
+    default @NotNull AbstractData<K, V> add(@NotNull K key, @Nullable V value) {
         throw new UnsupportedOperationException("This data can only have a single entry, use the set method instead");
     }
 

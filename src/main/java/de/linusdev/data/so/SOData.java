@@ -24,6 +24,7 @@ import de.linusdev.data.implemantations.SODataWrapperImpl;
 import de.linusdev.data.parser.JsonParser;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -119,6 +120,9 @@ public interface SOData extends SAOData<Object>, SODatable {
     static @NotNull SODataWrapper wrap(Object object) {
         return new SODataWrapperImpl(object);
     }
+
+    @Override
+    @NotNull SOData add(@NotNull String key, @Nullable Object value);
 
     @Override
     default SOData getData() {

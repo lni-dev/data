@@ -16,10 +16,20 @@
 
 package de.linusdev.data.implemantations;
 
+import de.linusdev.data.so.SOData;
 import de.linusdev.data.so.SODataWrapper;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SODataWrapperImpl extends SAODataWrapperImpl<Object> implements SODataWrapper {
+
     public SODataWrapperImpl(Object obj) {
         super(obj);
+    }
+
+    @Override
+    public @NotNull SOData add(@NotNull String key, @Nullable Object value) {
+        super.add(key, value);
+        return this;
     }
 }

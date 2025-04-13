@@ -22,6 +22,7 @@ import de.linusdev.data.implemantations.SAODataMapImpl;
 import de.linusdev.data.implemantations.SODataListImpl;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ public interface SAOData<O> extends AbstractData<String, O> {
      * </p>
      * <p>
      *     The {@link #get(Object)} and {@link #remove(Object)} methods of the returned {@link SAOData} will be in O(n), but the
-     *     {@link #add(Object, Object)} methods will be in O(1).
+     *     {@link #add(String, Object)} methods will be in O(1).
      * </p>
      * @param initialCapacity the initialCapacity of the {@link ArrayList}, which will back the {@link SAOData}
      * @return {@link SAOData} backed by a {@link ArrayList}
@@ -57,7 +58,7 @@ public interface SAOData<O> extends AbstractData<String, O> {
      * </p>
      * <p>
      *     The {@link #get(Object)} methods of the returned {@link SAOData} will be in O(n), but the
-     *     {@link #add(Object, Object)} and {@link #remove(Object)} methods will be in O(1).
+     *     {@link #add(String, Object)} and {@link #remove(Object)} methods will be in O(1).
      * </p>
      * @return {@link SAOData} backed by a {@link LinkedList}
      * @see #newOrderedDataWithKnownSize(int) for very small (less than 10 elemets) you should generrally use the
@@ -86,4 +87,6 @@ public interface SAOData<O> extends AbstractData<String, O> {
         return new SAODataMapImpl<>(map);
     }
 
+    @Override
+    @NotNull SAOData<O> add(@NotNull String key, @Nullable O value);
 }

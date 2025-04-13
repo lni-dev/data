@@ -35,9 +35,9 @@ public class SAODataMapImpl<O> implements SAOData<O> {
     }
 
     @Override
-    public boolean add(@NotNull String key, @Nullable O value) {
+    public @NotNull SAOData<O> add(@NotNull String key, @Nullable O value) {
         entries.put(key, value);
-        return true;
+        return this;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class SAODataMapImpl<O> implements SAOData<O> {
 
     @Override
     public @Nullable Entry<String, O> getEntry(@NotNull String key) {
-        return new MapEntryImpl<O>(this.entries, key);
+        return new MapEntryImpl<>(this.entries, key);
     }
 
     @Override

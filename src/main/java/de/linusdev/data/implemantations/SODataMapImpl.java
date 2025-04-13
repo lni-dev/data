@@ -17,6 +17,8 @@
 package de.linusdev.data.implemantations;
 
 import de.linusdev.data.so.SOData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -24,5 +26,11 @@ public class SODataMapImpl extends SAODataMapImpl<Object> implements SOData {
 
     public SODataMapImpl(Map<String, Object> map) {
         super(map);
+    }
+
+    @Override
+    public @NotNull SOData add(@NotNull String key, @Nullable Object value) {
+        super.add(key, value);
+        return this;
     }
 }
