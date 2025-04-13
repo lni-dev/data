@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * This represents a {@link AbstractData}, but the keys are {@link String strings} and the values are {@link Object objects}.
@@ -91,12 +92,22 @@ public interface SOData extends SAOData<Object>, SODatable {
     }
 
     /**
-     *
+     * This will create a new {@link SOData} which is backed by a {@link HashMap}. This should be
+     * used if {@link SOData} will be read from.
      * @param initialCapacity the initialCapacity of the {@link HashMap} which will back the {@link SOData}
      * @return {@link SOData} backed by a {@link HashMap}
      */
     static @NotNull SOData newHashMapData(int initialCapacity) {
         return new SODataMapImpl(new HashMap<>(initialCapacity));
+    }
+
+    /**
+     * Create a {@link SOData} of given {@code map}. The {@link SOData} will have the
+     * same content as given map.
+     * @return New {@link SOData} backed by given map.
+     */
+    static @NotNull SOData ofMap(@NotNull Map<String, Object> map) {
+        return new SODataMapImpl(map);
     }
 
     /**

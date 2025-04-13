@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 public interface SAOData<O> extends AbstractData<String, O> {
 
@@ -74,6 +75,15 @@ public interface SAOData<O> extends AbstractData<String, O> {
      */
     static <O> @NotNull SAOData<O> newHashMapData(int initialCapacity) {
         return new SAODataMapImpl<>(new HashMap<>(initialCapacity));
+    }
+
+    /**
+     * Create a {@link SAOData} of given {@code map}. The {@link SAOData} will have the
+     * same content as given map.
+     * @return New {@link SAOData} backed by given map.
+     */
+    static <V> @NotNull SAOData<V> ofMap(@NotNull Map<String, V> map) {
+        return new SAODataMapImpl<>(map);
     }
 
 }
