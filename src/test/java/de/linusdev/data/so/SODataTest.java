@@ -19,6 +19,7 @@ package de.linusdev.data.so;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,5 +44,30 @@ class SODataTest {
                 	}
                 }""", data.toJsonString().toString());
 
+    }
+
+    @Test
+    void computeIfAbsent() {
+        SOData data = SOData.newHashMapData(16);
+
+        data.add("test", "test");
+        AtomicBoolean run = new AtomicBoolean(false);
+        data.computeIfAbsent("test", s -> {
+            run.set(true);
+            return "NO";
+        });
+        assertFalse(run.get());
+
+        data.computeIfAbsent("test2", s -> {
+            run.set(true);
+            return "YES";
+        });
+        assertTrue(run.get());
+
+        assertEquals("""
+                {
+                \t"test2": "YES",
+                \t"test": "test"
+                }""", data.toJsonString().toString());
     }
 }

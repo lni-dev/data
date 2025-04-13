@@ -57,6 +57,8 @@ public class SAODataMapImpl<O> implements SAOData<O> {
 
     @Override
     public @Nullable Entry<String, O> getEntry(@NotNull String key) {
+        if(!entries.containsKey(key))
+            return null;
         return new MapEntryImpl<>(this.entries, key);
     }
 
