@@ -52,7 +52,11 @@ import java.util.function.Supplier;
  *          any primitive type array
  *     </li>
  *     <li>
- *         arrays and {@link Collection collections} of the before mentioned Classes
+ *         arrays and {@link Collection collections} of all mentioned Classes
+ *     </li>
+ *     <li>
+ *         {@link Map maps} with values of all mentioned Classes. The keys will be converted to a string
+ *         using {@link Objects#toString(Object)}.
  *     </li>
  * </ul>
  * <br>
@@ -87,13 +91,14 @@ import java.util.function.Supplier;
  *         an empty json-string, for example "" or "   ", will be parsed to an empty {@link SOData}
  *     </li>
  *     <li>
- *         an json-string that starts with a "[" (a json-array) will be parsed to an {@link SOData}.
+ *         a json-string that starts with a "[" (a json-array) will be parsed to an {@link SOData}.
  *         The array will be accessible with the {@link #arrayWrapperKey}. see {@link #setArrayWrapperKey(String)}
  *         and {@link #DEFAULT_ARRAY_WRAPPER_KEY}
  *     </li>
  *
  * </ul>
  */
+@SuppressWarnings("unused")
 public class JsonParser {
 
     public static final int CURLY_BRACKET_OPEN_CHAR      = '{';
@@ -423,8 +428,7 @@ public class JsonParser {
                 else first = false;
 
                 writer.append('\n').append(offset.toString());
-                writer.append('"').append(Objects.toString(entry.getKey())).append("\": ");
-
+                writeKey(writer, entry.getKey());
                 writeJsonValue(writer, offset, entry.getValue());
 
             }
@@ -446,6 +450,12 @@ public class JsonParser {
             }
 
         }
+    }
+
+    private void writeKey(@NotNull Appendable writer, @NotNull Object key) throws IOException {
+        writer.append('"');
+        ParseHelper.escape2(Objects.toString(key), writer);
+        writer.append("\": ");
     }
 
     private void writeJsonValue(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @Nullable Object value) throws IOException {
@@ -505,6 +515,23 @@ public class JsonParser {
             writer.append('\n');
             offset.remove();
             writer.append(offset.toString()).append(']');
+
+        } else if (value instanceof Map<?,?> map) {
+            writer.append('{').append('\n');
+            offset.add();
+
+            boolean first = true;
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (!first) writer.append(',').append('\n');
+                else first = false;
+                writer.append(offset.toString());
+                writeKey(writer, entry.getKey());
+                writeJsonValue(writer, offset, entry.getValue());
+            }
+
+            writer.append('\n');
+            offset.remove();
+            writer.append(offset.toString()).append('}');
 
         } else if (value instanceof Object[]) {
             writeJsonValue(writer, offset, (Object[]) value);
