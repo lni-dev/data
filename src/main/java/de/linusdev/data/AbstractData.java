@@ -1130,7 +1130,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     }
 
     /**
-     * If a value with given {@code key} is not null ({@link #get(Object) is not null), it will be returned.
+     * If a value with given {@code key} is not null ({@link #get(Object)} is not null), it will be returned.
      * Otherwise, the value returned by given {@code supplier} will be added at given {@code key}
      * and returned.
      */

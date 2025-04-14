@@ -30,7 +30,7 @@ dependencies {
 
 javadoc {
     options.encoding = 'UTF-8'
-    //options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('Xdoclint:none', '-quiet')
     title = "Data Json Parser"
 
     configure(options) {
