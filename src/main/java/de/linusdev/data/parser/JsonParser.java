@@ -26,6 +26,7 @@ import de.linusdev.lutils.interfaces.Simplifiable;
 import de.linusdev.lutils.other.parser.ParseException;
 import de.linusdev.lutils.other.parser.ParseTracker;
 import de.linusdev.lutils.other.parser.UnexpectedEndException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,8 +143,10 @@ public class JsonParser {
      * Default: {@code "\t"}
      * @param indent {@link String}
      */
-    public void setIndent(@NotNull String indent) {
+    @Contract("_ -> this")
+    public @NotNull JsonParser setIndent(@NotNull String indent) {
         this.indent = indent;
+        return this;
     }
 
     /**
@@ -151,8 +154,10 @@ public class JsonParser {
      * Default: {@code SOData::newOrderedDataWithUnknownSize}
      * @param dataSupplier {@link Supplier} to supply with {@link SOData}
      */
-    public void setDataSupplier(@NotNull Supplier<SOData> dataSupplier) {
+    @Contract("_ -> this")
+    public @NotNull JsonParser setDataSupplier(@NotNull Supplier<SOData> dataSupplier) {
         this.dataSupplier = dataSupplier;
+        return this;
     }
 
     /**
@@ -161,16 +166,20 @@ public class JsonParser {
      * Default: {@value #DEFAULT_ARRAY_WRAPPER_KEY}
      * @param arrayWrapperKey key to use when wrapping the array in a {@link SOData}
      */
-    public void setArrayWrapperKey(@NotNull String arrayWrapperKey) {
+    @Contract("_ -> this")
+    public @NotNull JsonParser setArrayWrapperKey(@NotNull String arrayWrapperKey) {
         this.arrayWrapperKey = arrayWrapperKey;
+        return this;
     }
 
     /**
      * Default: {@code true}
      * @param allowNewLineInStrings whether to allow new lines in keys and string-values while reading
      */
-    public void setAllowNewLineInStrings(boolean allowNewLineInStrings) {
+    @Contract("_ -> this")
+    public @NotNull JsonParser setAllowNewLineInStrings(boolean allowNewLineInStrings) {
         this.allowNewLineInStrings = allowNewLineInStrings;
+        return this;
     }
 
     /**
@@ -186,8 +195,10 @@ public class JsonParser {
      * Default: {@code false}
      * @param identifyNumberValues {@code true} to enable the feature described above
      */
-    public void setIdentifyNumberValues(boolean identifyNumberValues) {
+    @Contract("_ -> this")
+    public @NotNull JsonParser setIdentifyNumberValues(boolean identifyNumberValues) {
         this.identifyNumberValues = identifyNumberValues;
+        return this;
     }
 
     /* ================================================================================================= *\
