@@ -113,6 +113,7 @@ public class JsonParser {
     public static final int COMMA_CHAR = ',';
     public static final int SLASH_CHAR = '/';
     public static final int ASTERISK_CHAR = '*';
+    public static final int SPACE_CHAR = ' ';
 
     public static final String TRUE = "true";
     public static final String FALSE = "false";
@@ -540,29 +541,29 @@ public class JsonParser {
     private void writeJson(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @Nullable AbstractData<?, ?> data) throws IOException {
         if (data == null) data = dataSupplier.get();
         if(data.getParseType() == ParseType.NORMAL) {
-            writer.append('{');
+            writer.append((char) CURLY_BRACKET_OPEN_CHAR);
             offset.add();
 
             boolean first = true;
             for (Entry<?, ?> entry : data) {
-                if (!first) writer.append(',');
+                if (!first) writer.append((char) COMMA_CHAR);
                 else first = false;
 
-                writer.append('\n').append(offset.toString());
+                writer.append((char) NEW_LINE_CHAR).append(offset.toString());
                 writeKey(writer, entry.getKey());
                 writeJsonValue(writer, offset, entry.getValue());
 
             }
 
-            writer.append('\n');
+            writer.append((char) NEW_LINE_CHAR);
             offset.remove();
-            writer.append(offset.toString()).append('}');
+            writer.append(offset.toString()).append((char) CURLY_BRACKET_CLOSE_CHAR);
 
         } else if (data.getParseType() == ParseType.CONTENT_ONLY){
 
             boolean first = true;
             for (Entry<?, ?> entry : data) {
-                if (!first) writer.append(", ");
+                if (!first) writer.append((char) COMMA_CHAR).append((char) SPACE_CHAR);
                 else first = false;
 
                 writer.append(offset.toString());
@@ -574,14 +575,14 @@ public class JsonParser {
     }
 
     private void writeKey(@NotNull Appendable writer, @NotNull Object key) throws IOException {
-        writer.append('"');
+        writer.append((char) QUOTE_CHAR);
         ParseHelper.escape2(Objects.toString(key), writer);
-        writer.append("\": ");
+        writer.append((char) QUOTE_CHAR).append((char) COLON_CHAR).append((char) SPACE_CHAR);
     }
 
     private void writeJsonValue(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @Nullable Object value) throws IOException {
         if (value == null) {
-            writer.append("null");
+            writer.append(NULL);
 
         } else if (value instanceof Datable) {
             writeJson(writer, offset, ((Datable) value).getData());
@@ -590,12 +591,12 @@ public class JsonParser {
             writeJsonValue(writer, offset, ((Simplifiable) value).simplify());
 
         } else if (value instanceof String) {
-            writer.append('\"');
+            writer.append((char) QUOTE_CHAR);
             ParseHelper.escape2((String) value, writer);
-            writer.append('\"');
+            writer.append((char) QUOTE_CHAR);
 
-        } else if (value instanceof Boolean) {
-            writer.append(value.toString());
+        } else if (value instanceof Boolean bool) {
+            writer.append(bool ? TRUE : FALSE);
 
         } else if (value instanceof Integer) {
             writer.append(value.toString());
@@ -622,37 +623,37 @@ public class JsonParser {
             if (identifyNumberValues) writer.append(FLOAT_TOKEN);
 
         } else if (value instanceof Collection) {
-            writer.append('[').append('\n');
+            writer.append((char) SQUARE_BRACKET_OPEN_CHAR).append((char) NEW_LINE_CHAR);
             offset.add();
 
             boolean first = true;
             for (Object o : (Collection<?>) value) {
-                if (!first) writer.append(',').append('\n');
+                if (!first) writer.append((char) COMMA_CHAR).append((char) NEW_LINE_CHAR);
                 else first = false;
                 writer.append(offset.toString());
                 writeJsonValue(writer, offset, o);
             }
 
-            writer.append('\n');
+            writer.append((char) NEW_LINE_CHAR);
             offset.remove();
-            writer.append(offset.toString()).append(']');
+            writer.append(offset.toString()).append((char) SQUARE_BRACKET_CLOSE_CHAR);
 
         } else if (value instanceof Map<?,?> map) {
-            writer.append('{').append('\n');
+            writer.append((char) CURLY_BRACKET_OPEN_CHAR).append((char) NEW_LINE_CHAR);
             offset.add();
 
             boolean first = true;
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if (!first) writer.append(',').append('\n');
+                if (!first) writer.append((char) COMMA_CHAR).append((char) NEW_LINE_CHAR);
                 else first = false;
                 writer.append(offset.toString());
                 writeKey(writer, entry.getKey());
                 writeJsonValue(writer, offset, entry.getValue());
             }
 
-            writer.append('\n');
+            writer.append((char) NEW_LINE_CHAR);
             offset.remove();
-            writer.append(offset.toString()).append('}');
+            writer.append(offset.toString()).append((char) CURLY_BRACKET_CLOSE_CHAR);
 
         } else if (value instanceof Object[]) {
             writeJsonValue(writer, offset, (Object[]) value);
@@ -692,27 +693,27 @@ public class JsonParser {
 
         } else {
             //If the Object is none of the above, a simple string is added instead
-            writer.append('"');
+            writer.append((char) QUOTE_CHAR);
             ParseHelper.escape2(value.toString(), writer);
-            writer.append('"');
+            writer.append((char) QUOTE_CHAR);
         }
     }
 
     private void writeJsonValue(@NotNull Appendable writer, @NotNull SpaceOffsetTracker offset, @NotNull Object[] value) throws IOException {
-        writer.append('[').append('\n');
+        writer.append((char) SQUARE_BRACKET_OPEN_CHAR).append((char) NEW_LINE_CHAR);
         offset.add();
 
         boolean first = true;
         for (Object o : value) {
-            if (!first) writer.append(',').append('\n');
+            if (!first) writer.append((char) COMMA_CHAR).append((char) NEW_LINE_CHAR);
             else first = false;
             writer.append(offset.toString());
             writeJsonValue(writer, offset, o);
         }
 
-        writer.append('\n');
+        writer.append((char) NEW_LINE_CHAR);
         offset.remove();
-        writer.append(offset.toString()).append(']');
+        writer.append(offset.toString()).append((char) SQUARE_BRACKET_CLOSE_CHAR);
     }
 
 }
