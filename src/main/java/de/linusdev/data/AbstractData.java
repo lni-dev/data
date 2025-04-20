@@ -16,15 +16,16 @@
 
 package de.linusdev.data;
 
-import de.linusdev.data.container.Container;
-import de.linusdev.data.container.ContainerImpl;
 import de.linusdev.data.entry.Entry;
-import de.linusdev.data.functions.Converter;
-import de.linusdev.data.functions.ExceptionConverter;
 import de.linusdev.data.functions.ExceptionSupplier;
 import de.linusdev.data.functions.ValueFactory;
 import de.linusdev.data.implemantations.SODataMapImpl;
 import de.linusdev.data.parser.JsonParser;
+import de.linusdev.lutils.interfaces.Converter;
+import de.linusdev.lutils.interfaces.ExceptionConverter;
+import de.linusdev.lutils.optional.Container;
+import de.linusdev.lutils.optional.OptionalValue;
+import de.linusdev.lutils.optional.impl.BasicContainer;
 import de.linusdev.lutils.other.NumberUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -201,10 +202,10 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
         return OptionalValue.of(converter.convert((C) entry.getValue()));
     }
 
-    default @NotNull Container<K, V, V> getContainer(@NotNull K key) {
+    default @NotNull Container<V> getContainer(@NotNull K key) {
         Entry<K, V> entry = getEntry(key);
         boolean exists = entry != null;
-        return new ContainerImpl<>(this, key, exists ? entry.getValue() : null, exists);
+        return new BasicContainer<>(key, exists, exists ? entry.getValue() : null);
     }
 
     /**

@@ -16,8 +16,8 @@
 
 package de.linusdev.data.refl;
 
-import de.linusdev.data.OptionalValue;
 import de.linusdev.data.so.SOData;
+import de.linusdev.lutils.optional.OptionalValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
