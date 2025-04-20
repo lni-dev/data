@@ -23,6 +23,7 @@ import de.linusdev.data.entry.Entry;
 import de.linusdev.data.so.SAOEntryImpl;
 import de.linusdev.data.so.SOData;
 import de.linusdev.lutils.interfaces.Simplifiable;
+import de.linusdev.lutils.interfaces.TBiConsumer;
 import de.linusdev.lutils.other.parser.ParseException;
 import de.linusdev.lutils.other.parser.ParseTracker;
 import de.linusdev.lutils.other.parser.UnexpectedEndException;
@@ -110,6 +111,8 @@ public class JsonParser {
     public static final int COLON_CHAR = ':';
     public static final int NEW_LINE_CHAR = '\n';
     public static final int COMMA_CHAR = ',';
+    public static final int SLASH_CHAR = '/';
+    public static final int ASTERISK_CHAR = '*';
 
     public static final String TRUE = "true";
     public static final String FALSE = "false";
@@ -131,6 +134,8 @@ public class JsonParser {
     private @NotNull String arrayWrapperKey = DEFAULT_ARRAY_WRAPPER_KEY;
     private boolean allowNewLineInStrings = true;
     private boolean identifyNumberValues = false;
+    private boolean allowComments = false;
+    private @Nullable TBiConsumer<@NotNull JsonParser, @NotNull String, ?> commentConsumer;
 
     /* ================================================================================================= *\
     |                                                                                                     |
@@ -201,6 +206,27 @@ public class JsonParser {
         return this;
     }
 
+    /**
+     * If enabled it will allow comments in the json. E.g.:
+     * <pre>
+     * // This is a single line comment
+     * /* This is a
+     *    multi line
+     *    comment
+     * *&#47;</pre>
+     *
+     * @param allowComments {@code true} to allow comments as desribed above
+     */
+    @Contract("_, _ -> this")
+    public @NotNull JsonParser setAllowComments(
+            boolean allowComments,
+            @Nullable TBiConsumer<@NotNull JsonParser, @NotNull String, ?> commentConsumer
+    ) {
+        this.allowComments = allowComments;
+        this.commentConsumer = commentConsumer;
+        return this;
+    }
+
     /* ================================================================================================= *\
     |                                                                                                     |
     |                                             Stream to Data                                          |
@@ -220,7 +246,7 @@ public class JsonParser {
         JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(stream)));
 
         try {
-            return parse(reader);
+            return parse(reader, null);
         } finally {
             reader.close();
         }
@@ -240,7 +266,24 @@ public class JsonParser {
         JsonReader jsonReader = new JsonReader(new BufferedReader(reader));
 
         try {
-            return parse(jsonReader);
+            return parse(jsonReader, null);
+        } finally {
+            jsonReader.close();
+        }
+    }
+
+    /**
+     * Creates a {@link StringReader} of given {@code json} and passes it to {@link #parse(JsonReader, ParseTracker)}.
+     * @param json the json to parse
+     * @return parsed {@link SOData}
+     * @throws IOException while parsing
+     * @throws ParseException while parsing
+     */
+    public @NotNull SOData parseString(@NotNull String json) throws IOException, ParseException {
+        JsonReader jsonReader = new JsonReader(new StringReader(json));
+
+        try {
+            return parse(jsonReader, null);
         } finally {
             jsonReader.close();
         }
@@ -258,8 +301,9 @@ public class JsonParser {
      * @throws IOException while parsing
      * @throws ParseException while parsing
      */
-    private @NotNull SOData parse(@NotNull JsonReader reader) throws IOException, ParseException {
-        ParseTracker tracker = new ParseTracker();
+    private @NotNull SOData parse(@NotNull JsonReader reader, @Nullable ParseTracker tracker) throws IOException, ParseException {
+        if(tracker == null)
+            tracker = new ParseTracker();
         int i = reader.read(tracker);
         if(i == -1) return dataSupplier.get();
 
@@ -273,10 +317,70 @@ public class JsonParser {
             data.addEntry(entry);
             return data;
 
+        } else if (allowComments && i == SLASH_CHAR) {
+            parseComment(reader, tracker);
+            return parse(reader, tracker);
         } else {
             throw new ParseException(tracker, (char) i);
         }
 
+    }
+
+    /**
+     * Assumes that the starting {@value SLASH_CHAR} has already been read and {@link #allowComments}
+     * is {@code true}.
+     * @param reader to read from
+     * @param tracker {@link ParseTracker}
+     * @throws IOException while reading
+     */
+    private void parseComment(@NotNull JsonReader reader, @NotNull ParseTracker tracker) throws IOException, ParseException {
+        assert allowComments;
+        int i = reader.readNextChar(tracker);
+
+        if(i == SLASH_CHAR) {
+            // Read single line comment
+            String comment = reader.readToEOL(tracker);
+            if(commentConsumer != null) {
+                try {
+                    commentConsumer.consume(this, comment);
+                } catch (Throwable e) {
+                    throw new ParseException(tracker, e);
+                }
+            }
+        } else if(i == ASTERISK_CHAR) {
+            // Read multi line comment
+            String comment = reader.readMultiLineComment(tracker);
+            if(commentConsumer != null) {
+                try {
+                    commentConsumer.consume(this, comment);
+                } catch (Throwable e) {
+                    throw new ParseException(tracker, e);
+                }
+            }
+        } else {
+            throw new ParseException(tracker, (char) i);
+        }
+    }
+
+    /**
+     * If {@link #allowComments} is {@code false} returns given {@code i} immediately.
+     * Checks if given {@code i} is a {@value SLASH_CHAR} and reads a comment or multiple
+     * comments if it is.
+     * @param i current char to check
+     * @param reader to read from if {@code i} is the start of a comment
+     * @param tracker {@link ParseTracker}
+     * @return given char {@code i} or the next char after the comment(s)
+     * @throws IOException while reading
+     * @throws ParseException if the comment is malformed
+     */
+    private int parsePossibleComment(int i, @NotNull JsonReader reader, @NotNull ParseTracker tracker) throws IOException, ParseException {
+        if(!allowComments)
+            return i;
+        while (i == SLASH_CHAR) {
+            parseComment(reader, tracker);
+            i = reader.read(tracker);
+        }
+        return i;
     }
 
     /**
@@ -295,20 +399,22 @@ public class JsonParser {
 
         while(i != -1){
             //inside the json-object, we first expect a key...
-            if(i != QUOTE_CHAR) throw new ParseException(tracker, (char) i);
+            if((i = parsePossibleComment(i, reader, tracker)) != QUOTE_CHAR) throw new ParseException(tracker, (char) i);
 
             SAOEntryImpl<Object> entry = new SAOEntryImpl<>(reader.readString(allowNewLineInStrings, tracker));
 
             //now we expect a colon (':')
-            i = reader.read(tracker);
+            i = parsePossibleComment(reader.read(tracker), reader, tracker);
             if(i != COLON_CHAR) throw new ParseException(tracker, (char) i);
+
+            reader.pushBack(parsePossibleComment(reader.read(tracker), reader, tracker));
 
             //now read the value for the key
             entry.setValue(parseJsonValue(reader, tracker));
             //add the entry once it is filled. If the entry was added first, it could cause problems, in some AbstractData implementations
             data.addEntry(entry);
 
-            i = reader.read(tracker);
+            i = parsePossibleComment(reader.read(tracker), reader, tracker);
             //now expect a comma, or a '}'
             if(i == COMMA_CHAR) {
                 i = reader.read(tracker);
@@ -362,23 +468,27 @@ public class JsonParser {
      * @throws ParseException while parsing
      */
     private @NotNull List<Object> parseJsonArray(@NotNull JsonReader reader, @NotNull ParseTracker tracker) throws IOException, ParseException {
-        int i = reader.read(tracker);
+        int i = 0;
+        boolean valueParsed = false;
         LinkedList<Object> list = new LinkedList<>();
 
-        //check if it is an empty array
-        if(i == SQUARE_BRACKET_CLOSE_CHAR) return list;
-        reader.pushBack(i);
-
         while(i != -1){
-            list.add(parseJsonValue(reader, tracker));
+            i = parsePossibleComment(reader.read(tracker), reader, tracker);
+            if(i == SQUARE_BRACKET_CLOSE_CHAR) return list;
+            if(valueParsed) {
+                if(i == COMMA_CHAR) {
+                    valueParsed = false;
+                    continue;
+                }
 
-            i = reader.read(tracker);
-            //now expect a comma, or a ']'
-            if(i == COMMA_CHAR) {
-                continue;
+                // We needed a comma or a square bracket close!
+                throw new ParseException(tracker, (char) i);
             }
-            else if(i == SQUARE_BRACKET_CLOSE_CHAR) return list;
-            throw new ParseException(tracker, (char) i);
+
+            reader.pushBack(i);
+            // Read item
+            list.add(parseJsonValue(reader, tracker));
+            valueParsed = true;
         }
 
         throw new UnexpectedEndException(tracker);
