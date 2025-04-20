@@ -79,9 +79,85 @@ public class JsonReader {
     }
 
     /**
-     * reads until ',' is read. the ',' will be pushed back.
+     * Reads the next char without skipping anything
+     * @param tracker to track lines
+     * @return the next char or -1 if the end has been reached.
+     * @throws IOException while reading
+     */
+    public int readNextChar(@NotNull ParseTracker tracker) throws IOException {
+        int i;
+        if (pushBack != -1) {
+            i = pushBack;
+            pushBack = -1;
+            return i;
+        }
+
+        i = reader.read();
+
+        if(i == NEW_LINE_CHAR)
+            tracker.nextLine();
+
+        return i;
+    }
+
+    /**
+     * Reads until EOL or EOF.
      * @param tracker {@link ParseTracker}
      * @return read value, may be {@link Boolean}, {@code null} or {@link Number}
+     * @throws IOException while reading or parsing
+     */
+    public @NotNull String readToEOL(@NotNull ParseTracker tracker) throws IOException {
+        StringBuilder str = new StringBuilder(50);
+
+        int i = reader.read();
+
+        while (i != -1) {
+            if (i == NEW_LINE_CHAR) {
+                tracker.nextLine();
+                return str.toString();
+            }
+
+            str.append((char) i);
+            i = reader.read();
+        }
+
+        if(str.charAt(str.length()-1) == '\r')
+            str.setLength(str.length()-1);
+
+        return str.toString();
+    }
+
+    public @NotNull String readMultiLineComment(@NotNull ParseTracker tracker) throws IOException, UnexpectedEndException {
+        StringBuilder str = new StringBuilder(50);
+
+        int i = reader.read();
+        boolean asterisk = false;
+
+        while (i != -1) {
+            if(asterisk && i == SLASH_CHAR) {
+                str.setLength(str.length()-1);
+                return str.toString();
+            }
+
+            asterisk = i == ASTERISK_CHAR;
+
+            if (i == NEW_LINE_CHAR)
+                tracker.nextLine();
+
+            str.append((char) i);
+            i = reader.read();
+        }
+
+        throw new UnexpectedEndException(tracker);
+    }
+
+    /**
+     * reads until {@value JsonParser#COMMA_CHAR}, {@value JsonParser#CURLY_BRACKET_CLOSE_CHAR},
+     * {@value JsonParser#SQUARE_BRACKET_CLOSE_CHAR}, {@value JsonParser#SLASH_CHAR} is read.
+     * the last char will be pushed back.
+     * @param tracker {@link ParseTracker}
+     * @return read value, may be {@link Boolean}, {@code null} or {@link Number}
+     * @param allowToken whether {@link JsonParser#setIdentifyNumberValues(boolean)} is set to {@code true}.
      * @throws IOException while reading or parsing
      * @throws ParseException while reading or parsing
      */
@@ -91,7 +167,7 @@ public class JsonReader {
         int i = read(tracker);
 
         while (i != -1) {
-            if (i == JsonParser.COMMA_CHAR || i == JsonParser.CURLY_BRACKET_CLOSE_CHAR || i == JsonParser.SQUARE_BRACKET_CLOSE_CHAR) {
+            if (i == COMMA_CHAR || i == CURLY_BRACKET_CLOSE_CHAR || i == SQUARE_BRACKET_CLOSE_CHAR || i == SLASH_CHAR) {
                 pushBack(i);
                 String valueString = str.toString();
 

@@ -16,8 +16,13 @@
 
 package de.linusdev.data.so;
 
+import de.linusdev.data.parser.JsonParser;
+import de.linusdev.lutils.other.parser.ParseException;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -68,6 +73,35 @@ class SODataTest {
                 {
                 \t"test2": "YES",
                 \t"test": "test"
+                }""", data.toJsonString().toString());
+    }
+
+    @Test
+    void comments() throws IOException, ParseException {
+        List<String> comments = new ArrayList<>();
+        JsonParser parser = new JsonParser().setAllowComments(true, (jsonParser, s) -> {
+            System.out.println("Comment: " + s);
+            comments.add(s);
+        });
+
+        SOData data = parser.parseString(
+                """
+                        // First comment
+                        {
+                        "key1": true,
+                        /*comment1
+                        
+                        multi
+                        line!
+                         */ "key2" /*comment2*/ : /*comment3*/ "test"
+                        }"""
+        );
+
+        assertEquals(4, comments.size());
+        assertEquals("""
+                {
+                	"key1": true,
+                	"key2": "test"
                 }""", data.toJsonString().toString());
     }
 }
