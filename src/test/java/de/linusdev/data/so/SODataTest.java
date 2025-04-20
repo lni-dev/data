@@ -16,6 +16,7 @@
 
 package de.linusdev.data.so;
 
+import de.linusdev.data.AbstractData;
 import de.linusdev.data.parser.JsonParser;
 import de.linusdev.lutils.other.parser.ParseException;
 import org.junit.jupiter.api.Test;
@@ -103,5 +104,33 @@ class SODataTest {
                 	"key1": true,
                 	"key2": "test"
                 }""", data.toJsonString().toString());
+    }
+
+    @Test
+    void container() throws IOException, ParseException {
+        SOData data = AbstractData.PARSER.parseString("""
+                {
+                \t"test2": "YES",
+                \t"test": "test"
+                }""");
+
+
+        var con = data.getContainer("noexist");
+
+        assertFalse(con.exists());
+        assertTrue(con.isNull());
+        assertNull(con.get());
+
+        assertThrows(NullPointerException.class, con::requireNotNull);
+
+        var con2 = data.getContainer("test2");
+
+        assertTrue(con2.exists());
+        assertFalse(con2.isNull());
+        assertNotNull(con2.get());
+
+        assertDoesNotThrow(() -> con2.requireNotNull());
+
+
     }
 }
