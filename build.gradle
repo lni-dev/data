@@ -21,7 +21,7 @@ group = 'de.linusdev' /*
  * limitations under the License.
  */ //noinspection GroovyUnusedAssignment
 archivesBaseName = "data"
-version =  '2.3.2'
+version =  '2.3.0'
 
 //noinspection GroovyUnusedAssignment
 targetCompatibility = JavaVersion.VERSION_17 //noinspection GroovyUnusedAssignment
