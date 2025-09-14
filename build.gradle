@@ -3,11 +3,12 @@ plugins {
     id 'maven-publish'
     id 'java-library'
     id 'signing'
+    id 'com.gradleup.nmcp.aggregation' version '1.1.0'
 }
 
 group = 'de.linusdev'
 archivesBaseName = "data"
-version =  '2.3.0'
+version =  '2.3.1'
 
 
 targetCompatibility = JavaVersion.VERSION_17
@@ -20,7 +21,7 @@ repositories {
 
 dependencies {
     implementation 'org.jetbrains:annotations:24.0.1'
-    api 'de.linusdev:lutils:2.0.1'
+    api 'de.linusdev:lutils:2.1.0'
 
     testImplementation(platform('org.junit:junit-bom:5.12.2'))
     testImplementation('org.junit.jupiter:junit-jupiter')
@@ -51,29 +52,19 @@ test {
     useJUnitPlatform()
 }
 
-publishing {
-
-    repositories {
-        maven {
-            if(project.hasProperty("ossrhTokenUserName") && project.hasProperty("ossrhTokenPassword")){
-                def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
-                def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-
-                credentials {
-                    username = ossrhTokenUserName
-                    password = ossrhTokenPassword
-                }
-
-            }else {
-                project.logger.lifecycle("no OSSRH username and password given. Cannot deploy.")
-            }
-
-        }
+nmcpAggregation {
+    centralPortal {
+        username = centralTokenUsername
+        password = centralTokenPassword
+        publishingType = "AUTOMATIC"
     }
+    // Publish all projects that apply the 'maven-publish' plugin
+    publishAllProjectsProbablyBreakingProjectIsolation()
+}
 
+publishing {
     publications {
-        mavenJava(MavenPublication) {
+        dataPub(MavenPublication) {
             artifactId = 'data'
             from components.java
             pom {
@@ -110,7 +101,7 @@ publishing {
 
 signing {
     if(project.hasProperty("signing.keyId") && project.hasProperty("signing.password") && project.hasProperty("signing.secretKeyRingFile")){
-        sign publishing.publications.mavenJava
+        sign publishing.publications.dataPub
     }else {
         project.logger.lifecycle("No Signing information given. Cannot sign.")
     }
