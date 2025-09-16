@@ -1,4 +1,4 @@
-module me.linusdev.data {
+module de.linusdev.data {
     exports de.linusdev.data;
     exports de.linusdev.data.parser;
     exports de.linusdev.data.parser.exceptions;
