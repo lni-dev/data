@@ -22,7 +22,7 @@ import de.linusdev.data.functions.ValueFactory;
 import de.linusdev.data.implemantations.SODataMapImpl;
 import de.linusdev.data.parser.JsonParser;
 import de.linusdev.lutils.interfaces.Converter;
-import de.linusdev.lutils.interfaces.ExceptionConverter;
+import de.linusdev.lutils.interfaces.TConverter;
 import de.linusdev.lutils.optional.Container;
 import de.linusdev.lutils.optional.OptionalValue;
 import de.linusdev.lutils.optional.impl.BasicContainer;
@@ -196,7 +196,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws ClassCastException if the value for given key is not of type {@link C}.
      */
     @SuppressWarnings("unchecked")
-    default <C, R, E extends Exception> @NotNull OptionalValue<R> getOptionalValueAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C, R, E extends Exception> @NotNull OptionalValue<R> getOptionalValueAndConvertWithException(@NotNull K key, @NotNull TConverter<C, R, E> converter) throws E {
         Entry<K, V> entry = getEntry(key);
         if(entry == null) return OptionalValue.of();
         return OptionalValue.of(converter.convert((C) entry.getValue()));
@@ -405,20 +405,20 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     /**
      * The value returned by {@link #get(Object)} with given key must be of type {@link C} or {@code null}.<br>
      * If the value returned by {@link #get(Object)} with given key is {@code null},
-     * {@link ExceptionConverter#convert(Object)} with {@code null}.
+     * {@link TConverter#convert(Object)} with {@code null}.
      *
      * @param key the key for the entry of type {@link C}
      * @param converter {@link Converter} to convert from {@link C} to {@link R}
      * @param <C> the convertible type
      * @param <R> the result type
-     * @param <E> the Exception thrown by your {@link ExceptionConverter}
+     * @param <E> the Exception thrown by your {@link TConverter}
      * @return result {@link R} or {@code null} if your functions returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
-     * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
+     * @throws E if {@link TConverter#convert(Object)} throws an Exception
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    default  <C extends V, R, E extends Exception> R getAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default  <C extends V, R, E extends Exception> R getAndConvertWithException(@NotNull K key, @NotNull TConverter<C, R, E> converter) throws E {
         C convertible = (C) get(key);
         return converter.convert(convertible);
     }
@@ -432,14 +432,14 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param defaultObject object to return if {@link #get(Object)} with given key is {@code null}
      * @param <C> the convertible type
      * @param <R> the result type
-     * @param <E> the Exception thrown by your {@link ExceptionConverter}
+     * @param <E> the Exception thrown by your {@link TConverter}
      * @return result {@link R} or {@code null} if defaultObject is {@code null} and {@link #get(Object)} with given is {@code null} or if your functions returns {@code null}
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}
-     * @throws E if {@link ExceptionConverter#convert(Object)} throws an Exception
+     * @throws E if {@link TConverter#convert(Object)} throws an Exception
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    default  <C extends V, R, E extends Exception> R getAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter, @Nullable R defaultObject) throws E {
+    default  <C extends V, R, E extends Exception> R getAndConvertWithException(@NotNull K key, @NotNull TConverter<C, R, E> converter, @Nullable R defaultObject) throws E {
         C convertible = (C) get(key);
         if(convertible == null) return defaultObject;
         return converter.convert(convertible);
@@ -601,7 +601,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @throws E if the functions throws this exception
      */
     @SuppressWarnings("unchecked")
-    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithException(@NotNull K key, @NotNull TConverter<C, R, E> converter) throws E {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -657,10 +657,10 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param <R> result type
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link List} of {@link Object}
      * @throws ClassCastException if the elements of the implementations returned by {@link #getList(Object)} with given key cannot be cast to {@link C}
-     * @throws E if given converter throws an exception ({@link ExceptionConverter#convert(Object)})
+     * @throws E if given converter throws an exception ({@link TConverter#convert(Object)})
      */
     @SuppressWarnings("unchecked")
-    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithExceptionAndFreeMemory(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter) throws E {
+    default <C, R, E extends Throwable> @Nullable ArrayList<R> getListAndConvertWithExceptionAndFreeMemory(@NotNull K key, @NotNull TConverter<C, R, E> converter) throws E {
         List<Object> list = getList(key);
         if(list == null) return null;
 
@@ -725,7 +725,7 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
 
     /**
      * <p>
-     *     If an entry with given key exists, it will be {@link ExceptionConverter#convert(Object) converted} by given {@code converter},
+     *     If an entry with given key exists, it will be {@link TConverter#convert(Object) converted} by given {@code converter},
      *     then processed by given {@code consumer} and {@code true} will be returned.<br>
      *     If an entry with given key does not exists, {@code false} will be returned.<br>
      * </p>
@@ -738,11 +738,11 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * @param <R> type to convert to.
      * @param <E> exception your converter can throw.
      * @throws ClassCastException if the value of the entry with given key is not of type {@link C}.
-     * @throws E if your {@link ExceptionConverter} throws this exception.
+     * @throws E if your {@link TConverter} throws this exception.
      * @return {@code true} if an entry with given key exists, {@code false} otherwise.
      */
     @SuppressWarnings("unchecked")
-    default <C extends V, R, E extends Throwable> boolean convertWithExceptionAndProcessIfContained(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter, @NotNull Consumer<R> consumer) throws E {
+    default <C extends V, R, E extends Throwable> boolean convertWithExceptionAndProcessIfContained(@NotNull K key, @NotNull TConverter<C, R, E> converter, @NotNull Consumer<R> consumer) throws E {
         Entry<K, V> entry = getEntry(key);
         if(entry != null){
             consumer.accept(converter.convert((C) entry.getValue()));
@@ -811,20 +811,20 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     /**
      * <p>
      *     If an entry with given {@code key} exists, it will be cast to a {@link List} and every element cast to {@link C}
-     *     {@link ExceptionConverter#convert(Object) converted} to {@link R}. All elements will be added to a new {@link List},
+     *     {@link TConverter#convert(Object) converted} to {@link R}. All elements will be added to a new {@link List},
      *     which will then be processed by given {@code consumer} and {@code true} will be returned.
      * </p>
      * @implNote The entry will <b>NOT</b> be removed from this {@link AbstractData}. <br>
      * The entry's value may still be {@code null}. To assure non-null values use {@link #processIfNotNull(Object, Consumer)}.
      * @param key the key {@link K} for the entry.
-     * @param converter {@link ExceptionConverter} to convert from {@link C} to {@link R}
+     * @param converter {@link TConverter} to convert from {@link C} to {@link R}
      * @param consumer consumer to process the entry, if it exists.
      * @return {@code true} if an entry with given key exists, {@code false} otherwise.
      * @throws ClassCastException if the value of the entry with given key is not a {@link List}
      * or if any element inside the list is not of type {@link C}.
      */
     @SuppressWarnings({"unchecked", "DuplicatedCode"})
-    default <C, R, E extends Throwable> boolean convertWithExceptionAndProcessListIfContained(@NotNull K key, @NotNull ExceptionConverter<C, R, E> converter, @NotNull Consumer<List<R>> consumer) throws E {
+    default <C, R, E extends Throwable> boolean convertWithExceptionAndProcessListIfContained(@NotNull K key, @NotNull TConverter<C, R, E> converter, @NotNull Consumer<List<R>> consumer) throws E {
         Entry<K, V> entry = getEntry(key);
         if(entry != null){
             List<Object> list = (List<Object>) entry.getValue();
@@ -940,20 +940,20 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
      * it is safe for your {@link Converter} to assume not-null values.
      *
      * @param key the key for the entry
-     * @param converter {@link ExceptionConverter} to convert from {@link C} to {@link R}.
+     * @param converter {@link TConverter} to convert from {@link C} to {@link R}.
      * @param consumer consumer to process the entry, if it exists
      * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
      * @param <C> type to cast to.
      * @param <E> exception supplied by your {@link ExceptionSupplier}.
      * @param <R> type to convert to.
-     * @param <F> exception thrown by your {@link ExceptionConverter}.
+     * @param <F> exception thrown by your {@link TConverter}.
      * @throws ClassCastException if the value of the entry with given key is not of type {@link C}
      * @throws E if an entry with given key exists, and its value is {@code null}.
      * @throws F if your {@code converter} throws this exception
      * @return {@code true} if an entry with given key exists, {@code false} otherwise
      */
     @SuppressWarnings({"unchecked", "DuplicatedCode"})
-    default <C extends V, R, E extends Throwable, F extends Throwable> boolean convertWithExceptionAndProcessIfContainedAndRequireNotNull(@NotNull K key, ExceptionConverter<C, R, F> converter, @NotNull Consumer<R> consumer, ExceptionSupplier<K,AbstractData<K, V>, E> exceptionSupplier) throws E, F {
+    default <C extends V, R, E extends Throwable, F extends Throwable> boolean convertWithExceptionAndProcessIfContainedAndRequireNotNull(@NotNull K key, TConverter<C, R, F> converter, @NotNull Consumer<R> consumer, ExceptionSupplier<K,AbstractData<K, V>, E> exceptionSupplier) throws E, F {
         Entry<K, V> entry = getEntry(key);
         if(entry == null) return false;
         if(entry.getValue() == null) throw exceptionSupplier.supply(this, key);
@@ -1049,26 +1049,26 @@ public interface AbstractData<K, V> extends Iterable<Entry<K, V>>, Datable{
     /**
      * <p>
      *     {@link #get(Object) Gets} the value with given key and casts it to {@link C}.
-     *     If the value is not {@code null} it will be {@link ExceptionConverter#convert(Object) converted} to {@link R} and then returned.
+     *     If the value is not {@code null} it will be {@link TConverter#convert(Object) converted} to {@link R} and then returned.
      *     If the value is {@code null}, {@link E} supplied by your {@link ExceptionSupplier} will be thrown.
      * </p>
-     * @implNote if {@link #get(Object)} returns {@code null}, {@link ExceptionConverter#convert(Object)} will <b>not</b> be called. So
-     * it is safe for your {@link ExceptionConverter} to assume not-null values.
+     * @implNote if {@link #get(Object)} returns {@code null}, {@link TConverter#convert(Object)} will <b>not</b> be called. So
+     * it is safe for your {@link TConverter} to assume not-null values.
      * @param key {@link V} key
      * @param exceptionSupplier {@link ExceptionSupplier} supplies a {@link Throwable} if {@link #get(Object)} with given key returns {@code null}.
-     * @param converter {@link ExceptionConverter} to convert from {@link C} to {@link R}.
+     * @param converter {@link TConverter} to convert from {@link C} to {@link R}.
      * @return {@link V value} cast to {@link C} returned by {@link #get(Object)}. Never {@code null}.
      * @param <C> The class to cast to.
      * @param <E> The {@link Throwable} to be thrown if {@link #get(Object)} with given key returns {@code null}.
-     * @param <F> The {@link Throwable} which your {@link ExceptionConverter} can throw.
+     * @param <F> The {@link Throwable} which your {@link TConverter} can throw.
      * @param <R> The class to {@link Converter#convert(Object) convert} to.
      * @throws E if {@link #get(Object)} with given key returns {@code null}.
      * @throws ClassCastException if the value returned by {@link #get(Object)} with given key is not of type {@link C}.
-     * @throws F if your {@link ExceptionConverter} throws this exception.
+     * @throws F if your {@link TConverter} throws this exception.
      */
     @SuppressWarnings("unchecked")
     @NotNull
-    default <C extends V, R, E extends Throwable, F extends Throwable> R getAndRequireNotNullAndConvertWithException(@NotNull K key, @NotNull ExceptionConverter<C, R, F> converter, @NotNull ExceptionSupplier<K, AbstractData<K, V>, E> exceptionSupplier) throws E, F {
+    default <C extends V, R, E extends Throwable, F extends Throwable> R getAndRequireNotNullAndConvertWithException(@NotNull K key, @NotNull TConverter<C, R, F> converter, @NotNull ExceptionSupplier<K, AbstractData<K, V>, E> exceptionSupplier) throws E, F {
         C obj = (C) get(key);
         if(obj == null) throw exceptionSupplier.supply(this, key);
         return converter.convert(obj);
